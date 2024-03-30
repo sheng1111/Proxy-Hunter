@@ -6,10 +6,12 @@ from argparse import ArgumentParser, RawTextHelpFormatter
 """
 抓取Free Proxy List (https://free-proxy-list.net/) 上的頁面，再利用正規表達法蒐集所有的IP 清單，最後再透過 ipify (https://www.ipify.org/) 做測試
 添加 '-o' '--output' 參數，設定預設值為 'proxy.txt'
+添加 '-u' '--update' 參數，更新你的 proxy list
 添加 '-c' '--check' 參數，檢查指定文件中列出的代理是否有效。此選項需要一個文件名作為參數，該文件應包含欲檢查的代理列表。
 """
 
-description_text = '''
+description_text = r"""
+
  ______                              _______                __
 |   __ \.----..-----..--.--..--.--. |   |   |.--.--..-----.|  |_ .-----..----.
 |    __/|   _||  _  ||_   _||  |  | |       ||  |  ||     ||   _||  -__||   _|
@@ -17,14 +19,14 @@ description_text = '''
                             |_____|
 
 Get the proxy list from this tool and check the proxy is valid or not.
-'''
+"""
 
 parser = ArgumentParser(description=description_text,
                         formatter_class=RawTextHelpFormatter)
 parser.add_argument(
     '-o', '--output', help='Set the output file name.', default='proxy.txt')
-# parser.add_argument(
-#     '-u', '--update', help='Update your proxies listed.', default='proxy.txt')
+parser.add_argument(
+    '-u', '--update', help='Update your proxies listed.')
 parser.add_argument(
     '-c', '--check', help="Check if the proxies listed in the specified file are valid. This option requires a filename as an argument, which should contain the list of proxies to be checked.")
 
@@ -66,7 +68,6 @@ def thread(ips, filename, mode):
         t.join()
 
     save_result(validips, filename, mode)
-    print("All threads have finished to get proxy.")
 
 
 def main():
@@ -77,9 +78,20 @@ def main():
                 thread(ips, args.check, 'w')
         except:
             print("The file is not exist.")
+    elif args.update:
+        try:
+            with open(args.update, 'r', encoding='utf-8') as file:
+                ips = [lines.strip() for lines in file.readlines()]
+                thread(ips, args.update, 'w')
+            ips = get_newProxy()
+            thread(ips, args.update, 'a')
+        except:
+            print("The file is not exist.")
     else:
         ips = get_newProxy()
         thread(ips, args.output, 'w')
+
+    print("All threads have finished to get proxy.")
 
 
 if __name__ == "__main__":
