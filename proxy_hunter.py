@@ -33,7 +33,7 @@ parser.add_argument(
 args = parser.parse_args()
 
 
-def get_newProxy():
+def get_new_proxy():
     response = requests.get('https://free-proxy-list.net/')
     ips = re.findall(r'\d+\.\d+\.\d+\.\d+:\d+', response.text)
     return ips
@@ -44,8 +44,8 @@ def check_proxy(ip, validips):
         _ = requests.get('https://api.ipify.org?format=json',
                          proxies={'http': ip, 'https': ip}, timeout=5)
         validips.append({'ip': ip})
-    except:
-        None
+    except requests.RequestException:
+        pass
 
 
 def save_result(validips, filename, mode):
@@ -55,7 +55,7 @@ def save_result(validips, filename, mode):
             file.write(str(proxy) + '\n')
 
 
-def thread(ips, filename, mode):
+def check_proxy_thread(ips, filename, mode):
     validips = []
     threads = []
 
@@ -70,26 +70,26 @@ def thread(ips, filename, mode):
     save_result(validips, filename, mode)
 
 
+def read_ips_from_file(filename):
+    try:
+        with open(filename, 'r', encoding='utf8') as file:
+            ips = [lines.strip() for lines in file.readlines()]
+        return ips
+    except FileNotFoundError:
+        print("The file does not exist.")
+        return []
+
+
 def main():
     if args.check:
-        try:
-            with open(args.check, 'r', encoding='utf-8') as file:
-                ips = [lines.strip() for lines in file.readlines()]
-                thread(ips, args.check, 'w')
-        except:
-            print("The file is not exist.")
+        ips = read_ips_from_file(args.check)
+        check_proxy_thread(ips, args.check, 'w')
     elif args.update:
-        try:
-            with open(args.update, 'r', encoding='utf-8') as file:
-                ips = [lines.strip() for lines in file.readlines()]
-                thread(ips, args.update, 'w')
-            ips = get_newProxy()
-            thread(ips, args.update, 'a')
-        except:
-            print("The file is not exist.")
+        ips = read_ips_from_file(args.update)
+        check_proxy_thread(ips, args.update, 'a')
     else:
-        ips = get_newProxy()
-        thread(ips, args.output, 'w')
+        ips = get_new_proxy()
+        check_proxy_thread(ips, args.output, 'w')
 
     print("All threads have finished to get proxy.")
 
