@@ -35,8 +35,10 @@ args = parser.parse_args()
 
 def get_new_proxy():
     response = requests.get('https://free-proxy-list.net/')
+    response.raise_for_status()
     ips = re.findall(r'\d+\.\d+\.\d+\.\d+:\d+', response.text)
-    return ips
+    # remove duplicated entries while preserving order
+    return list(dict.fromkeys(ips))
 
 
 def check_proxy(ip, validips):
@@ -73,8 +75,8 @@ def check_proxy_thread(ips, filename, mode):
 def read_ips_from_file(filename):
     try:
         with open(filename, 'r', encoding='utf8') as file:
-            ips = [lines.strip() for lines in file.readlines()]
-        return ips
+            ips = [line.strip() for line in file if line.strip()]
+        return list(dict.fromkeys(ips))
     except FileNotFoundError:
         print("The file does not exist.")
         return []
@@ -86,7 +88,7 @@ def main():
         check_proxy_thread(ips, args.check, 'w')
     elif args.update:
         ips = read_ips_from_file(args.update)
-        check_proxy_thread(ips, args.update, 'a')
+        check_proxy_thread(ips, args.update, 'w')
     else:
         ips = get_new_proxy()
         check_proxy_thread(ips, args.output, 'w')
