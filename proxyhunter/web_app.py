@@ -3,7 +3,9 @@
 from __future__ import annotations
 
 import json
-from flask import Flask, request, render_template_string
+import threading
+import os
+from flask import Flask, request, render_template_string, jsonify, redirect, url_for
 
 from .core import ProxyHunter
 
@@ -135,18 +137,63 @@ $(document).ready(function() {
 </html>
 """
 
+RESULTS_FILE = os.path.join(os.path.dirname(__file__), "proxy_results.jsonl")
+RESULTS_LOCK = threading.Lock()
+
+# Helper to load results from JSONL
+
+
+def load_results():
+    results = []
+    if os.path.exists(RESULTS_FILE):
+        with open(RESULTS_FILE, "r", encoding="utf-8") as f:
+            for line in f:
+                try:
+                    results.append(json.loads(line))
+                except Exception:
+                    continue
+    return results
+
+
+# Helper to append results to JSONL
+
+def save_results(new_results):
+    with RESULTS_LOCK:
+        with open(RESULTS_FILE, "a", encoding="utf-8") as f:
+            for r in new_results:
+                f.write(json.dumps(r, ensure_ascii=False) + "\n")
+
+
+# Background proxy update
+
+def update_proxies():
+    hunter = ProxyHunter()
+    proxies = hunter.fetch_proxies()
+    results = hunter.check_proxies(proxies)
+    save_results(results)
+
+
+@app.route("/refresh", methods=["POST"])
+def refresh():
+    threading.Thread(target=update_proxies, daemon=True).start()
+    return jsonify({"status": "started"})
+
+
+@app.route("/data")
+def data():
+    results = load_results()
+    return jsonify(results)
+
 
 @app.route("/")
 def index() -> str:
     lang = request.args.get("lang", "en")
     trans = TRANSLATIONS.get(lang, TRANSLATIONS["en"])
-    hunter = ProxyHunter()
-    proxies = hunter.fetch_proxies()
-    results = hunter.check_proxies(proxies)
+    results = load_results()
     success_count = sum(1 for r in results if r["status"] == "ok")
     fail_count = len(results) - success_count
     avg = round(
-        sum(r["response_time"] for r in results if r["response_time"])
+        sum(r["response_time"] for r in results if r["status"] == "ok" and r["response_time"])
         / success_count,
         2,
     ) if success_count else 0
@@ -155,10 +202,19 @@ def index() -> str:
             "proxy": r["proxy"],
             "response_time": r["response_time"] or 0,
         }
-        for r in results
+        for r in results if r["status"] == "ok"
     ])
     return render_template_string(
-        INDEX_HTML,
+        INDEX_HTML + """
+<script>
+function refreshProxies() {
+  fetch('/refresh', {method: 'POST'})
+    .then(r => r.json())
+    .then(_ => location.reload());
+}
+</script>
+<button class='btn btn-primary mb-3' onclick='refreshProxies()'>Refresh Proxies</button>
+""",
         results=results,
         chart_data=chart_data,
         trans=trans,
@@ -170,6 +226,11 @@ def index() -> str:
     )
 
 
+# Production WSGI entry point
+# To run: gunicorn -w 4 proxyhunter.web_app:app
+
+# Remove Flask dev server warning
 if __name__ == "__main__":
+    print("WARNING: For production, use a WSGI server like Gunicorn or Waitress.")
     app.run(debug=False)
 

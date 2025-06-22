@@ -91,15 +91,38 @@ class ProxyHunter:
     # convenience helpers
     def save(self, results: List[Dict[str, str | float]], filename: str,
              fmt: str = "txt", mode: str = "w") -> None:
-        """Save proxy results to ``filename`` in the given format."""
+        """Save proxy results to ``filename`` in the given format (txt, json, or jsonl)."""
         with open(filename, mode, encoding="utf-8") as fh:
             if fmt == "json":
-                json.dump([r["proxy"] for r in results if r["status"] == "ok"], fh,
+                json.dump([r for r in results if r["status"] == "ok"], fh,
                           ensure_ascii=False, indent=2)
+            elif fmt == "jsonl":
+                for r in results:
+                    if r["status"] == "ok":
+                        fh.write(json.dumps(r, ensure_ascii=False) + "\n")
             else:
                 for r in results:
                     if r["status"] == "ok":
                         fh.write(f"{r['proxy']}\n")
+
+    def load(self, filename: str, fmt: str = "txt") -> List[Dict[str, str | float]]:
+        """Load proxy results from a file (txt, json, or jsonl)."""
+        results = []
+        try:
+            with open(filename, "r", encoding="utf-8") as fh:
+                if fmt == "json":
+                    results = json.load(fh)
+                elif fmt == "jsonl":
+                    for line in fh:
+                        results.append(json.loads(line))
+                else:
+                    for line in fh:
+                        ip = line.strip()
+                        if ip:
+                            results.append({"proxy": ip, "status": "ok"})
+        except FileNotFoundError:
+            pass
+        return results
 
 
 def _read_ips_from_file(filename: str) -> List[str]:
@@ -159,5 +182,10 @@ def _cli() -> None:
         hunter.save(results, args.output, fmt=args.format, mode="w")
 
     print("All threads have finished to get proxy.")
+
+
+# CLI entry point for direct execution
+if __name__ == "__main__":
+    _cli()
 
 
