@@ -10,6 +10,9 @@ Proxy Hunter 是一款強大的 Python 工具，專為從[免費代理列表](ht
 - **代理驗證**：通過嘗試使用代理連接到互聯網來檢查每個代理服務器的有效性。
 - **輸出自定義**：允許用戶指定有效代理列表的輸出文件。
 - **基於文件的代理檢查**：支持檢查用戶指定文件中列出的代理的有效性。
+- **線程控制**：可調整驗證代理時使用的線程數量。
+- **匿名代理過濾**：僅保留可隱藏真實 IP 的代理。
+- **靈活的輸出格式**：結果可輸出為純文字或 JSON。
 
 ## 先決條件
 
@@ -48,6 +51,14 @@ python proxy_hunter.py
 
 ```bash
 python proxy_hunter.py -o existing_proxies.txt
+```
+
+### 進階選項
+
+同時設定線程數、只保留匿名代理並輸出為 JSON：
+
+```bash
+python proxy_hunter.py -t 20 -a -f json -o proxies.json
 ```
 
 ### 幫助

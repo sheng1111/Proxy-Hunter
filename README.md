@@ -12,6 +12,9 @@ Proxy Hunter is a powerful Python tool designed for scraping and testing the ava
 - **Proxy Validation**: Checks the validity of each proxy server by attempting to connect to the internet using the proxy.
 - **Output Customization**: Allows users to specify the output file for the list of valid proxies.
 - **File-Based Proxy Check**: Supports checking the validity of proxies listed in a user-specified file.
+- **Thread Control**: Choose how many threads are used for proxy validation.
+- **Anonymous Proxy Filter**: Optionally keep only proxies that hide your real IP.
+- **Flexible Output Formats**: Save results in plain text or JSON format.
 
 ## Prerequisites
 
@@ -50,6 +53,14 @@ To specify a different output file for the proxies, use the `-o` or `--output` o
 
 ```bash
 python proxy_hunter.py -o existing_proxies.txt
+```
+
+### Advanced Options
+
+Specify thread count, only keep anonymous proxies and save as JSON:
+
+```bash
+python proxy_hunter.py -t 20 -a -f json -o proxies.json
 ```
 
 ### Help
