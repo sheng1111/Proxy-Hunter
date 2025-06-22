@@ -6,7 +6,6 @@
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/sheng1111/Proxy-Hunter.svg)](https://github.com/sheng1111/Proxy-Hunter/stargazers)
-[![Downloads](https://img.shields.io/pypi/dm/proxyhunter.svg)](https://pypi.org/project/proxyhunter/)
 
 **Professional proxy management for red team operations and web scraping**
 
