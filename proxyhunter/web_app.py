@@ -58,7 +58,11 @@ INDEX_HTML = """
   <meta charset="utf-8">
   <title>{{ trans.title }}</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.10.5/font/bootstrap-icons.css" rel="stylesheet">
+  <link href="https://cdn.datatables.net/1.13.7/css/jquery.dataTables.min.css" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jquery@3.7.1/dist/jquery.min.js"></script>
+  <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
 </head>
 <body class="p-4">
   <div class="container">
@@ -73,7 +77,7 @@ INDEX_HTML = """
     <p>{{ trans.source }}: <a href="https://free-proxy-list.net/">free-proxy-list.net</a></p>
     <p>{{ trans.total }}: {{ total }} | {{ trans.success }}: {{ success }} | {{ trans.fail }}: {{ fail }} | {{ trans.average }}: {{ average }}</p>
     <canvas id="responseChart" class="mb-4"></canvas>
-    <table class="table table-striped">
+    <table class="table table-striped" id="resultTable">
       <thead>
         <tr>
           <th>{{ trans.proxy }}</th>
@@ -86,7 +90,14 @@ INDEX_HTML = """
       {% for item in results %}
         <tr>
           <td>{{ item.proxy }}</td>
-          <td>{{ item.status }}</td>
+          <td>
+            {% if item.status == 'ok' %}
+              <i class="bi bi-check-circle-fill text-success"></i>
+            {% else %}
+              <i class="bi bi-x-circle-fill text-danger"></i>
+            {% endif %}
+            {{ item.status }}
+          </td>
           <td>{{ item.response_time if item.response_time is not none else '-' }}</td>
           <td>{{ item.data_size }}</td>
         </tr>
@@ -114,6 +125,10 @@ new Chart(ctx, {
       y: { beginAtZero: true }
     }
   }
+});
+
+$(document).ready(function() {
+  $('#resultTable').DataTable();
 });
 </script>
 </body>
