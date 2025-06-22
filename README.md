@@ -44,7 +44,7 @@ pip install -r requirements.txt
 Run the script without any arguments to scrape new proxies and save them to `proxy.txt` (default filename):
 
 ```bash
-python proxy_hunter.py
+python -m proxyhunter
 ```
 
 ### Custom Output Filename
@@ -52,7 +52,7 @@ python proxy_hunter.py
 To specify a different output file for the proxies, use the `-o` or `--output` option:
 
 ```bash
-python proxy_hunter.py -o existing_proxies.txt
+python -m proxyhunter -o existing_proxies.txt
 ```
 
 ### Advanced Options
@@ -60,7 +60,7 @@ python proxy_hunter.py -o existing_proxies.txt
 Specify thread count, only keep anonymous proxies and save as JSON:
 
 ```bash
-python proxy_hunter.py -t 20 -a -f json -o proxies.json
+python -m proxyhunter -t 20 -a -f json -o proxies.json
 ```
 
 ### Web Dashboard
@@ -68,7 +68,7 @@ python proxy_hunter.py -t 20 -a -f json -o proxies.json
 Launch a simple Flask dashboard to monitor proxies and see response-time charts:
 
 ```bash
-python web_app.py
+python -m proxyhunter.web_app
 ```
 
 ### Using as a Library
@@ -76,7 +76,7 @@ python web_app.py
 You can also import :class:`ProxyHunter` in your own code:
 
 ```python
-from proxy_hunter import ProxyHunter
+from proxyhunter import ProxyHunter
 
 hunter = ProxyHunter()
 proxies = hunter.fetch_proxies()
@@ -88,7 +88,7 @@ results = hunter.check_proxies(proxies)
 For more information on the command-line options, use the `-h` or `--help` option:
 
 ```bash
-python proxy_hunter.py -h
+python -m proxyhunter -h
 ```
 
 ## License
