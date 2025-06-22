@@ -42,7 +42,7 @@ pip install -r requirements.txt
 運行腳本而不帶任何參數以抓取新代理並將它們保存到 proxy.txt（默認文件名）：
 
 ```bash
-python proxy_hunter.py
+python -m proxyhunter
 ```
 
 ### 自定義輸出文件名
@@ -50,7 +50,7 @@ python proxy_hunter.py
 使用 `-o` 或 `--output` 選項指定代理的不同輸出文件：
 
 ```bash
-python proxy_hunter.py -o existing_proxies.txt
+python -m proxyhunter -o existing_proxies.txt
 ```
 
 ### 進階選項
@@ -58,7 +58,7 @@ python proxy_hunter.py -o existing_proxies.txt
 同時設定線程數、只保留匿名代理並輸出為 JSON：
 
 ```bash
-python proxy_hunter.py -t 20 -a -f json -o proxies.json
+python -m proxyhunter -t 20 -a -f json -o proxies.json
 ```
 
 ### 網頁儀表板
@@ -66,7 +66,7 @@ python proxy_hunter.py -t 20 -a -f json -o proxies.json
 啟動 Flask 儀表板以監看代理狀態及查看回應時間圖表：
 
 ```bash
-python web_app.py
+python -m proxyhunter.web_app
 ```
 
 ### 以程式庫方式使用
@@ -74,7 +74,7 @@ python web_app.py
 在您的程式中匯入 `ProxyHunter`：
 
 ```python
-from proxy_hunter import ProxyHunter
+from proxyhunter import ProxyHunter
 
 hunter = ProxyHunter()
 proxies = hunter.fetch_proxies()
@@ -86,7 +86,7 @@ results = hunter.check_proxies(proxies)
 要獲取有關命令行選項的更多資訊，請使用 `-h` 或 `--help`選項：
 
 ```bash
-python proxy_hunter.py -h
+python -m proxyhunter -h
 ```
 
 ## License

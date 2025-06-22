@@ -161,6 +161,3 @@ def _cli() -> None:
     print("All threads have finished to get proxy.")
 
 
-if __name__ == "__main__":
-    _cli()
-
