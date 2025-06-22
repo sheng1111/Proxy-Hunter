@@ -63,6 +63,26 @@ Specify thread count, only keep anonymous proxies and save as JSON:
 python proxy_hunter.py -t 20 -a -f json -o proxies.json
 ```
 
+### Web Dashboard
+
+Launch a simple Flask dashboard to monitor proxies and see response-time charts:
+
+```bash
+python web_app.py
+```
+
+### Using as a Library
+
+You can also import :class:`ProxyHunter` in your own code:
+
+```python
+from proxy_hunter import ProxyHunter
+
+hunter = ProxyHunter()
+proxies = hunter.fetch_proxies()
+results = hunter.check_proxies(proxies)
+```
+
 ### Help
 
 For more information on the command-line options, use the `-h` or `--help` option:

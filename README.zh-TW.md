@@ -61,6 +61,26 @@ python proxy_hunter.py -o existing_proxies.txt
 python proxy_hunter.py -t 20 -a -f json -o proxies.json
 ```
 
+### 網頁儀表板
+
+啟動 Flask 儀表板以監看代理狀態及查看回應時間圖表：
+
+```bash
+python web_app.py
+```
+
+### 以程式庫方式使用
+
+在您的程式中匯入 `ProxyHunter`：
+
+```python
+from proxy_hunter import ProxyHunter
+
+hunter = ProxyHunter()
+proxies = hunter.fetch_proxies()
+results = hunter.check_proxies(proxies)
+```
+
 ### 幫助
 
 要獲取有關命令行選項的更多資訊，請使用 `-h` 或 `--help`選項：

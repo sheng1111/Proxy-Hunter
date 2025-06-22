@@ -1,26 +1,40 @@
-import re
-import requests
-import time
+"""Flask web dashboard for :class:`ProxyHunter`."""
+
+from __future__ import annotations
+
+import json
 from concurrent.futures import ThreadPoolExecutor
+
 from flask import Flask, render_template_string
+
+from proxy_hunter import ProxyHunter
+
 
 app = Flask(__name__)
 
+
 INDEX_HTML = """
 <!doctype html>
-<html lang=\"en\">
+<html lang="en">
 <head>
-  <meta charset=\"utf-8\">
+  <meta charset="utf-8">
   <title>Proxy Hunter Dashboard</title>
-  <link href=\"https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css\" rel=\"stylesheet\">
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
-<body class=\"p-4\">
-  <div class=\"container\">
-    <h1 class=\"mb-4\">Proxy Hunter Dashboard</h1>
-    <p>Source: <a href=\"https://free-proxy-list.net/\">free-proxy-list.net</a></p>
-    <table class=\"table table-striped\">
+<body class="p-4">
+  <div class="container">
+    <h1 class="mb-4">Proxy Hunter Dashboard</h1>
+    <p>Source: <a href="https://free-proxy-list.net/">free-proxy-list.net</a></p>
+    <canvas id="responseChart" class="mb-4"></canvas>
+    <table class="table table-striped">
       <thead>
-        <tr><th>Proxy</th><th>Status</th><th>Response Time (s)</th><th>Data Size (bytes)</th></tr>
+        <tr>
+          <th>Proxy</th>
+          <th>Status</th>
+          <th>Response Time (s)</th>
+          <th>Data Size (bytes)</th>
+        </tr>
       </thead>
       <tbody>
       {% for item in results %}
@@ -34,37 +48,47 @@ INDEX_HTML = """
       </tbody>
     </table>
   </div>
+<script>
+const chartData = {{ chart_data | safe }};
+const ctx = document.getElementById('responseChart').getContext('2d');
+new Chart(ctx, {
+  type: 'bar',
+  data: {
+    labels: chartData.map(d => d.proxy),
+    datasets: [{
+      label: 'Response Time (s)',
+      data: chartData.map(d => d.response_time),
+      backgroundColor: 'rgba(54, 162, 235, 0.5)',
+      borderColor: 'rgba(54, 162, 235, 1)',
+      borderWidth: 1
+    }]
+  },
+  options: {
+    scales: {
+      y: { beginAtZero: true }
+    }
+  }
+});
+</script>
 </body>
 </html>
 """
 
-def fetch_proxies():
-    resp = requests.get('https://free-proxy-list.net/')
-    resp.raise_for_status()
-    ips = re.findall(r'\d+\.\d+\.\d+\.\d+:\d+', resp.text)
-    return list(dict.fromkeys(ips))
 
-def check_proxy(ip):
-    start = time.time()
-    try:
-        resp = requests.get(
-            'https://api.ipify.org?format=json',
-            proxies={'http': ip, 'https': ip},
-            timeout=5
-        )
-        resp.raise_for_status()
-        elapsed = time.time() - start
-        size = len(resp.content)
-        return {'proxy': ip, 'status': 'ok', 'response_time': round(elapsed, 2), 'data_size': size}
-    except requests.RequestException:
-        return {'proxy': ip, 'status': 'failed', 'response_time': None, 'data_size': 0}
+@app.route("/")
+def index() -> str:
+    hunter = ProxyHunter()
+    proxies = hunter.fetch_proxies()
+    results = hunter.check_proxies(proxies)
+    chart_data = json.dumps([
+        {
+            "proxy": r["proxy"],
+            "response_time": r["response_time"] or 0,
+        }
+        for r in results
+    ])
+    return render_template_string(INDEX_HTML, results=results, chart_data=chart_data)
 
-@app.route('/')
-def index():
-    proxies = fetch_proxies()
-    with ThreadPoolExecutor(max_workers=10) as executor:
-        results = list(executor.map(check_proxy, proxies))
-    return render_template_string(INDEX_HTML, results=results)
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     app.run(debug=True)
