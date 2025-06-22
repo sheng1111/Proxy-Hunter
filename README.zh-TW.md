@@ -1,5 +1,7 @@
 # Proxy Hunter
 
+[English Version](README.md) | [日本語版](README.ja.md)
+
 ## 概覽
 
 Proxy Hunter 是一款強大的 Python 工具，專為從[免費代理列表](https://free-proxy-list.net/)抓取和測試免費代理的可用性而設計。它使用正則表達式來收集 IP 地址列表並利用[ipify](https://www.ipify.org/)測試它們的有效性。對於需要快速且可靠地獲得免費且可工作代理服務器的開發者和安全分析師來說，它是一個必不可少的工具。

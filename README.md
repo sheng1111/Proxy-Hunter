@@ -1,6 +1,6 @@
 # Proxy Hunter
 
-[中文版說明](README.zh-TW.md)
+[中文版說明](README.zh-TW.md) | [日本語はこちら](README.ja.md)
 
 ## Overview
 
