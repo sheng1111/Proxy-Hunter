@@ -1,0 +1,99 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "proxyhunter"
+version = "2.0.0"
+description = "Professional proxy fetching and validation tool for red team operations and web scraping"
+readme = "README.md"
+requires-python = ">=3.8"
+license = {text = "MIT"}
+authors = [
+    {name = "ProxyHunter Team", email = "contact@proxyhunter.dev"},
+]
+keywords = ["proxy", "scraping", "red-team", "security", "networking", "validation", "anonymity"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Information Technology",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Internet :: Proxy Servers",
+    "Topic :: Internet :: WWW/HTTP",
+    "Topic :: Security",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Networking",
+]
+dependencies = [
+    "requests>=2.31.0",
+    "flask>=3.1.1",
+    "urllib3>=2.2.0",
+    "certifi>=2024.0.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-cov>=4.0.0",
+    "black>=23.0.0",
+    "flake8>=6.0.0",
+    "mypy>=1.0.0",
+]
+web = [
+    "gunicorn>=21.0.0",
+    "waitress>=3.0.0",
+]
+full = [
+    "plotly>=5.18.0",
+    "pandas>=2.1.0",
+    "sqlalchemy>=2.0.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/proxyhunter/proxyhunter"
+Repository = "https://github.com/proxyhunter/proxyhunter"
+Documentation = "https://proxyhunter.readthedocs.io/"
+"Bug Reports" = "https://github.com/proxyhunter/proxyhunter/issues"
+
+[project.scripts]
+proxyhunter = "proxyhunter.__main__:main"
+proxy-hunter = "proxyhunter.__main__:main"
+
+[tool.setuptools]
+packages = ["proxyhunter"]
+
+[tool.setuptools.package-data]
+proxyhunter = ["public/*.html", "public/*.css", "public/*.js", "i18n/*.json"]
+
+[tool.black]
+line-length = 100
+target-version = ["py38", "py39", "py310", "py311", "py312"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "-v --tb=short"
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+disallow_incomplete_defs = true
+check_untyped_defs = true
+disallow_untyped_decorators = true
+no_implicit_optional = true
+warn_redundant_casts = true
+warn_unused_ignores = true
+warn_no_return = true
+warn_unreachable = true
+strict_equality = true 
