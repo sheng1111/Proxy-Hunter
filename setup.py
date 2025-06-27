@@ -7,24 +7,23 @@ from pathlib import Path
 this_directory = Path(__file__).parent
 long_description = (this_directory / "README.md").read_text(encoding='utf-8')
 
-# Read requirements
-requirements = []
-try:
-    with open('requirements.txt', 'r', encoding='utf-8') as f:
-        requirements = [line.strip() for line in f if line.strip() and not line.startswith('#')]
-except FileNotFoundError:
-    requirements = [
-        'requests>=2.31.0',
-        'flask>=3.1.1',
-        'urllib3>=2.2.0',
-        'certifi>=2024.0.0'
-    ]
+# Requirements
+requirements = [
+    'requests>=2.31.0',
+    'flask>=3.1.1',
+    'urllib3>=2.2.0',
+    'certifi>=2024.0.0',
+    'flask-socketio>=5.3.0',
+    'python-socketio>=5.10.0',
+    'eventlet>=0.33.0',
+    'Jinja2>=3.1.0'
+]
 
 setup(
-    name="proxyhunter",
-    version="2.0.0",
+    name="proxy-hunter",
+    version="2.0.2",
     author="sheng1111",
-    author_email="somebody@gmail.com",
+    author_email="ysl58200@gmail.com",
     description="Professional proxy fetching and validation tool for red team operations and web scraping",
     long_description=long_description,
     long_description_content_type="text/markdown",
@@ -95,4 +94,4 @@ setup(
         'pytest>=8.0.0',
         'pytest-cov>=4.0.0',
     ],
-) 
+)

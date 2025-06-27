@@ -1,443 +1,568 @@
 <!DOCTYPE html>
 <html lang="{{ lang }}" class="h-100">
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
     <title>{{ trans.title }}</title>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css" rel="stylesheet">
-    <link href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css" rel="stylesheet">
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.2/font/bootstrap-icons.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdn.datatables.net/1.13.7/css/dataTables.bootstrap5.min.css"
+      rel="stylesheet"
+    />
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"
+      rel="stylesheet"
+    />
     <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
     <style>
-        :root {
-            --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-            --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-            --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-            --info-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
-            --dark-bg: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
-            --card-shadow: 0 8px 32px rgba(0,0,0,0.1);
-            --card-shadow-hover: 0 16px 64px rgba(0,0,0,0.15);
+      :root {
+        --primary-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        --success-gradient: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
+        --danger-gradient: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
+        --info-gradient: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+        --dark-bg: linear-gradient(135deg, #2c3e50 0%, #34495e 100%);
+        --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+        --card-shadow-hover: 0 16px 64px rgba(0, 0, 0, 0.15);
+      }
+
+      body {
+        background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+        min-height: 100vh;
+      }
+
+      .navbar {
+        background: var(--primary-gradient) !important;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+      }
+
+      .card {
+        border: none;
+        border-radius: 20px;
+        box-shadow: var(--card-shadow);
+        transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        backdrop-filter: blur(10px);
+        background: rgba(255, 255, 255, 0.95);
+      }
+
+      .card:hover {
+        transform: translateY(-8px) scale(1.02);
+        box-shadow: var(--card-shadow-hover);
+      }
+
+      .stat-card {
+        background: white;
+        border-radius: 15px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .stat-card::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+      }
+
+      .stat-card.primary::before {
+        background: var(--primary-gradient);
+      }
+      .stat-card.success::before {
+        background: var(--success-gradient);
+      }
+      .stat-card.danger::before {
+        background: var(--danger-gradient);
+      }
+      .stat-card.info::before {
+        background: var(--info-gradient);
+      }
+
+      .stat-icon {
+        width: 60px;
+        height: 60px;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 15px;
+        font-size: 24px;
+      }
+
+      .stat-icon.primary {
+        background: linear-gradient(135deg, #667eea20, #764ba220);
+        color: #667eea;
+      }
+      .stat-icon.success {
+        background: linear-gradient(135deg, #4facfe20, #00f2fe20);
+        color: #4facfe;
+      }
+      .stat-icon.danger {
+        background: linear-gradient(135deg, #fa709a20, #fee14020);
+        color: #fa709a;
+      }
+      .stat-icon.info {
+        background: linear-gradient(135deg, #a8edea20, #fed6e320);
+        color: #a8edea;
+      }
+
+      .btn-refresh {
+        background: var(--success-gradient);
+        border: none;
+        border-radius: 25px;
+        padding: 8px 20px;
+        transition: all 0.3s ease;
+      }
+
+      .btn-refresh:hover {
+        transform: scale(1.05);
+        box-shadow: 0 5px 15px rgba(0, 0, 0, 0.2);
+      }
+
+      .loading-spinner {
+        display: none;
+        margin-right: 8px;
+      }
+
+      .proxy-status-working {
+        background: var(--success-gradient);
+        color: white;
+        border-radius: 15px;
+        padding: 4px 12px;
+        font-size: 0.8em;
+      }
+
+      .proxy-status-failed {
+        background: var(--danger-gradient);
+        color: white;
+        border-radius: 15px;
+        padding: 4px 12px;
+        font-size: 0.8em;
+      }
+
+      .copy-btn {
+        border-radius: 50%;
+        width: 32px;
+        height: 32px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        transition: all 0.3s ease;
+      }
+
+      .copy-btn:hover {
+        transform: scale(1.1);
+      }
+
+      .toast-container {
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        z-index: 1050;
+      }
+
+      #proxyTable {
+        border-radius: 10px;
+        overflow: hidden;
+      }
+
+      .table th {
+        background: #f8f9fa;
+        border: none;
+        font-weight: 600;
+        color: #495057;
+      }
+
+      .table td {
+        border: none;
+        vertical-align: middle;
+      }
+
+      .table tbody tr {
+        transition: all 0.2s ease;
+      }
+
+      .table tbody tr:hover {
+        background-color: #f8f9fa;
+        transform: scale(1.01);
+      }
+
+      .chart-container {
+        position: relative;
+        height: 300px;
+      }
+
+      .export-dropdown {
+        border-radius: 15px;
+      }
+
+      .language-flag {
+        width: 20px;
+        height: 15px;
+        margin-right: 8px;
+      }
+
+      .loading-overlay {
+        position: fixed;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        background: rgba(255, 255, 255, 0.9);
+        display: none;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+      }
+
+      .pulse {
+        animation: pulse 2s infinite;
+      }
+
+      @keyframes pulse {
+        0% {
+          transform: scale(1);
         }
-        
-        body {
-            background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
-            min-height: 100vh;
+        50% {
+          transform: scale(1.05);
         }
-        
-        .navbar {
-            background: var(--primary-gradient) !important;
-            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        100% {
+          transform: scale(1);
         }
-        
-        .card {
-            border: none;
-            border-radius: 20px;
-            box-shadow: var(--card-shadow);
-            transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            backdrop-filter: blur(10px);
-            background: rgba(255, 255, 255, 0.95);
-        }
-        
-        .card:hover {
-            transform: translateY(-8px) scale(1.02);
-            box-shadow: var(--card-shadow-hover);
-        }
-        
-        .stat-card {
-            background: white;
-            border-radius: 15px;
-            overflow: hidden;
-            position: relative;
-        }
-        
-        .stat-card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 4px;
-        }
-        
-        .stat-card.primary::before { background: var(--primary-gradient); }
-        .stat-card.success::before { background: var(--success-gradient); }
-        .stat-card.danger::before { background: var(--danger-gradient); }
-        .stat-card.info::before { background: var(--info-gradient); }
-        
-        .stat-icon {
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 15px;
-            font-size: 24px;
-        }
-        
-        .stat-icon.primary { background: linear-gradient(135deg, #667eea20, #764ba220); color: #667eea; }
-        .stat-icon.success { background: linear-gradient(135deg, #4facfe20, #00f2fe20); color: #4facfe; }
-        .stat-icon.danger { background: linear-gradient(135deg, #fa709a20, #fee14020); color: #fa709a; }
-        .stat-icon.info { background: linear-gradient(135deg, #a8edea20, #fed6e320); color: #a8edea; }
-        
-        .btn-refresh {
-            background: var(--success-gradient);
-            border: none;
-            border-radius: 25px;
-            padding: 8px 20px;
-            transition: all 0.3s ease;
-        }
-        
-        .btn-refresh:hover {
-            transform: scale(1.05);
-            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
-        }
-        
-        .loading-spinner {
-            display: none;
-            margin-right: 8px;
-        }
-        
-        .proxy-status-working {
-            background: var(--success-gradient);
-            color: white;
-            border-radius: 15px;
-            padding: 4px 12px;
-            font-size: 0.8em;
-        }
-        
-        .proxy-status-failed {
-            background: var(--danger-gradient);
-            color: white;
-            border-radius: 15px;
-            padding: 4px 12px;
-            font-size: 0.8em;
-        }
-        
-        .copy-btn {
-            border-radius: 50%;
-            width: 32px;
-            height: 32px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: all 0.3s ease;
-        }
-        
-        .copy-btn:hover {
-            transform: scale(1.1);
-        }
-        
-        .toast-container {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 1050;
-        }
-        
-        #proxyTable {
-            border-radius: 10px;
-            overflow: hidden;
-        }
-        
-        .table th {
-            background: #f8f9fa;
-            border: none;
-            font-weight: 600;
-            color: #495057;
-        }
-        
-        .table td {
-            border: none;
-            vertical-align: middle;
-        }
-        
-        .table tbody tr {
-            transition: all 0.2s ease;
-        }
-        
-        .table tbody tr:hover {
-            background-color: #f8f9fa;
-            transform: scale(1.01);
-        }
-        
-        .chart-container {
-            position: relative;
-            height: 300px;
-        }
-        
-        .export-dropdown {
-            border-radius: 15px;
-        }
-        
-        .language-flag {
-            width: 20px;
-            height: 15px;
-            margin-right: 8px;
-        }
-        
-        .loading-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(255, 255, 255, 0.9);
-            display: none;
-            align-items: center;
-            justify-content: center;
-            z-index: 9999;
-        }
-        
-        .pulse {
-            animation: pulse 2s infinite;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.05); }
-            100% { transform: scale(1); }
-        }
+      }
     </style>
-</head>
-<body class="d-flex flex-column h-100">
+  </head>
+  <body class="d-flex flex-column h-100">
     <!-- Loading overlay -->
     <div class="loading-overlay" id="loadingOverlay">
-        <div class="text-center">
-            <div class="spinner-border text-primary mb-3" style="width: 3rem; height: 3rem;"></div>
-            <h5>{{ trans.loading }}</h5>
-        </div>
+      <div class="text-center">
+        <div
+          class="spinner-border text-primary mb-3"
+          style="width: 3rem; height: 3rem"
+        ></div>
+        <h5>{{ trans.loading }}</h5>
+      </div>
     </div>
-    
+
     <!-- Toast container -->
     <div class="toast-container"></div>
-    
+
     <!-- Navigation -->
     <nav class="navbar navbar-expand-lg navbar-dark">
-        <div class="container">
-            <a class="navbar-brand fw-bold" href="/">
-                <i class="bi bi-shield-lock me-2"></i>{{ trans.title }}
+      <div class="container">
+        <a class="navbar-brand fw-bold" href="/">
+          <i class="bi bi-shield-lock me-2"></i>{{ trans.title }}
+        </a>
+        <div class="navbar-nav ms-auto d-flex flex-row align-items-center">
+          <!-- Navigation links -->
+          <div class="nav-item me-3">
+            <a class="nav-link active" href="/?lang={{ lang }}">
+              <i class="bi bi-house me-1"></i>{{ trans.dashboard }}
             </a>
-            <div class="navbar-nav ms-auto d-flex flex-row align-items-center">
-                <!-- Language selector -->
-                <div class="nav-item dropdown me-3">
-                    <button class="btn btn-outline-light btn-sm dropdown-toggle" data-bs-toggle="dropdown">
-                        <i class="bi bi-translate me-1"></i>{{ trans.language }}
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="?lang=en">🇺🇸 English</a></li>
-                        <li><a class="dropdown-item" href="?lang=zh">🇹🇼 繁體中文</a></li>
-                        <li><a class="dropdown-item" href="?lang=ja">🇯🇵 日本語</a></li>
-                    </ul>
-                </div>
-                
-                <!-- Export dropdown -->
-                <div class="nav-item dropdown me-3">
-                    <button class="btn btn-outline-light btn-sm dropdown-toggle" data-bs-toggle="dropdown">
-                        <i class="bi bi-download me-1"></i>{{ trans.export }}
-                    </button>
-                    <ul class="dropdown-menu">
-                        <li><a class="dropdown-item" href="/api/export?format=txt"><i class="bi bi-file-text me-2"></i>TXT</a></li>
-                        <li><a class="dropdown-item" href="/api/export?format=json"><i class="bi bi-file-code me-2"></i>JSON</a></li>
-                        <li><a class="dropdown-item" href="/api/export?format=csv"><i class="bi bi-file-spreadsheet me-2"></i>CSV</a></li>
-                    </ul>
-                </div>
-                
-                <!-- Refresh button -->
-                <button class="btn btn-refresh btn-sm" onclick="refreshProxies()">
-                    <div class="loading-spinner spinner-border spinner-border-sm" role="status"></div>
-                    <i class="bi bi-arrow-clockwise me-1"></i>{{ trans.refresh }}
-                </button>
-            </div>
+          </div>
+          <div class="nav-item me-3">
+            <a class="nav-link" href="/traffic?lang={{ lang }}">
+              <i class="bi bi-activity me-1"></i>{{ trans.traffic_monitor }}
+            </a>
+          </div>
+
+          <!-- Language selector -->
+          <div class="nav-item dropdown me-3">
+            <button
+              class="btn btn-outline-light btn-sm dropdown-toggle"
+              data-bs-toggle="dropdown"
+            >
+              <i class="bi bi-translate me-1"></i>{{ trans.language }}
+            </button>
+            <ul class="dropdown-menu">
+              <li><a class="dropdown-item" href="?lang=en">🇺🇸 English</a></li>
+              <li><a class="dropdown-item" href="?lang=zh">🇹🇼 繁體中文</a></li>
+              <li><a class="dropdown-item" href="?lang=ja">🇯🇵 日本語</a></li>
+            </ul>
+          </div>
+
+          <!-- Export dropdown -->
+          <div class="nav-item dropdown me-3">
+            <button
+              class="btn btn-outline-light btn-sm dropdown-toggle"
+              data-bs-toggle="dropdown"
+            >
+              <i class="bi bi-download me-1"></i>{{ trans.export }}
+            </button>
+            <ul class="dropdown-menu">
+              <li>
+                <a class="dropdown-item" href="/api/export?format=txt"
+                  ><i class="bi bi-file-text me-2"></i>TXT</a
+                >
+              </li>
+              <li>
+                <a class="dropdown-item" href="/api/export?format=json"
+                  ><i class="bi bi-file-code me-2"></i>JSON</a
+                >
+              </li>
+              <li>
+                <a class="dropdown-item" href="/api/export?format=csv"
+                  ><i class="bi bi-file-spreadsheet me-2"></i>CSV</a
+                >
+              </li>
+            </ul>
+          </div>
+
+          <!-- Refresh button -->
+          <button class="btn btn-refresh btn-sm" onclick="refreshProxies()">
+            <div
+              class="loading-spinner spinner-border spinner-border-sm"
+              role="status"
+            ></div>
+            <i class="bi bi-arrow-clockwise me-1"></i>{{ trans.refresh }}
+          </button>
         </div>
+      </div>
     </nav>
-    
+
     <!-- Main content -->
     <main class="flex-shrink-0">
-        <div class="container my-4">
-            <!-- Alert container -->
-            <div id="alertContainer"></div>
-            
-            <!-- Statistics cards -->
-            <div class="row g-4 mb-5">
-                <div class="col-lg-3 col-md-6">
-                    <div class="card stat-card primary animate__animated animate__fadeInUp">
-                        <div class="card-body text-center p-4">
-                            <div class="stat-icon primary">
-                                <i class="bi bi-server"></i>
-                            </div>
-                            <h2 class="fw-bold mb-1">{{ total }}</h2>
-                            <p class="text-muted mb-0">{{ trans.total }}</p>
-                        </div>
-                    </div>
+      <div class="container my-4">
+        <!-- Alert container -->
+        <div id="alertContainer"></div>
+
+        <!-- Statistics cards -->
+        <div class="row g-4 mb-5">
+          <div class="col-lg-3 col-md-6">
+            <div
+              class="card stat-card primary animate__animated animate__fadeInUp"
+            >
+              <div class="card-body text-center p-4">
+                <div class="stat-icon primary">
+                  <i class="bi bi-server"></i>
                 </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="card stat-card success animate__animated animate__fadeInUp" style="animation-delay: 0.1s;">
-                        <div class="card-body text-center p-4">
-                            <div class="stat-icon success">
-                                <i class="bi bi-check-circle"></i>
-                            </div>
-                            <h2 class="fw-bold mb-1">{{ success }}</h2>
-                            <p class="text-muted mb-0">{{ trans.success }}</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="card stat-card danger animate__animated animate__fadeInUp" style="animation-delay: 0.2s;">
-                        <div class="card-body text-center p-4">
-                            <div class="stat-icon danger">
-                                <i class="bi bi-x-circle"></i>
-                            </div>
-                            <h2 class="fw-bold mb-1">{{ fail }}</h2>
-                            <p class="text-muted mb-0">{{ trans.fail }}</p>
-                        </div>
-                    </div>
-                </div>
-                <div class="col-lg-3 col-md-6">
-                    <div class="card stat-card info animate__animated animate__fadeInUp" style="animation-delay: 0.3s;">
-                        <div class="card-body text-center p-4">
-                            <div class="stat-icon info">
-                                <i class="bi bi-speedometer2"></i>
-                            </div>
-                            <h2 class="fw-bold mb-1">{{ "%.3f"|format(average) }}s</h2>
-                            <p class="text-muted mb-0">{{ trans.average }}</p>
-                        </div>
-                    </div>
-                </div>
+                <h2 class="fw-bold mb-1">{{ total }}</h2>
+                <p class="text-muted mb-0">{{ trans.total }}</p>
+              </div>
             </div>
-            
-            <!-- Charts -->
-            <div class="row g-4 mb-5">
-                <div class="col-lg-6">
-                    <div class="card animate__animated animate__fadeInLeft">
-                        <div class="card-header bg-transparent border-0 pt-4">
-                            <h5 class="card-title mb-0">
-                                <i class="bi bi-pie-chart me-2"></i>{{ trans.status_distribution }}
-                            </h5>
-                        </div>
-                        <div class="card-body pt-0">
-                            <div class="chart-container">
-                                <canvas id="statusChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
+          </div>
+          <div class="col-lg-3 col-md-6">
+            <div
+              class="card stat-card success animate__animated animate__fadeInUp"
+              style="animation-delay: 0.1s"
+            >
+              <div class="card-body text-center p-4">
+                <div class="stat-icon success">
+                  <i class="bi bi-check-circle"></i>
                 </div>
-                <div class="col-lg-6">
-                    <div class="card animate__animated animate__fadeInRight">
-                        <div class="card-header bg-transparent border-0 pt-4">
-                            <h5 class="card-title mb-0">
-                                <i class="bi bi-bar-chart me-2"></i>{{ trans.response_time_chart }}
-                            </h5>
-                        </div>
-                        <div class="card-body pt-0">
-                            <div class="chart-container">
-                                <canvas id="responseTimeChart"></canvas>
-                            </div>
-                        </div>
-                    </div>
-                </div>
+                <h2 class="fw-bold mb-1">{{ success }}</h2>
+                <p class="text-muted mb-0">{{ trans.success }}</p>
+              </div>
             </div>
-            
-            <!-- Proxy table -->
-            <div class="card animate__animated animate__fadeInUp">
-                <div class="card-header bg-transparent border-0 pt-4">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <h5 class="card-title mb-0">
-                            <i class="bi bi-table me-2"></i>{{ trans.proxy_list }}
-                        </h5>
-                        <small class="text-muted">{{ trans.last_updated }}: {{ last_updated }}</small>
-                    </div>
+          </div>
+          <div class="col-lg-3 col-md-6">
+            <div
+              class="card stat-card danger animate__animated animate__fadeInUp"
+              style="animation-delay: 0.2s"
+            >
+              <div class="card-body text-center p-4">
+                <div class="stat-icon danger">
+                  <i class="bi bi-x-circle"></i>
                 </div>
-                <div class="card-body pt-0">
-                    <div class="table-responsive">
-                        <table class="table table-hover" id="proxyTable">
-                            <thead>
-                                <tr>
-                                    <th>{{ trans.proxy }}</th>
-                                    <th>{{ trans.status }}</th>
-                                    <th>{{ trans.response_time }}</th>
-                                    <th>{{ trans.data_size }}</th>
-                                    <th class="text-center">{{ trans.actions }}</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for item in results %}
-                                <tr>
-                                    <td><code class="text-primary">{{ item.proxy }}</code></td>
-                                    <td>
-                                        {% if item.status == 'ok' %}
-                                            <span class="proxy-status-working">{{ trans.working }}</span>
-                                        {% else %}
-                                            <span class="proxy-status-failed">{{ trans.failed }}</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        {% if item.response_time %}
-                                            <span class="badge bg-light text-dark">{{ "%.3f"|format(item.response_time) }}s</span>
-                                        {% else %}
-                                            <span class="text-muted">-</span>
-                                        {% endif %}
-                                    </td>
-                                    <td>
-                                        <span class="badge bg-light text-dark">{{ item.data_size|filesizeformat }}</span>
-                                    </td>
-                                    <td class="text-center">
-                                        <button class="btn btn-outline-primary copy-btn" onclick="copyProxy('{{ item.proxy }}')" title="{{ trans.copy_to_clipboard }}">
-                                            <i class="bi bi-clipboard"></i>
-                                        </button>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
+                <h2 class="fw-bold mb-1">{{ fail }}</h2>
+                <p class="text-muted mb-0">{{ trans.fail }}</p>
+              </div>
             </div>
+          </div>
+          <div class="col-lg-3 col-md-6">
+            <div
+              class="card stat-card info animate__animated animate__fadeInUp"
+              style="animation-delay: 0.3s"
+            >
+              <div class="card-body text-center p-4">
+                <div class="stat-icon info">
+                  <i class="bi bi-speedometer2"></i>
+                </div>
+                <h2 class="fw-bold mb-1">{{ "%.3f"|format(average) }}s</h2>
+                <p class="text-muted mb-0">{{ trans.average }}</p>
+              </div>
+            </div>
+          </div>
         </div>
+
+        <!-- Charts -->
+        <div class="row g-4 mb-5">
+          <div class="col-lg-6">
+            <div class="card animate__animated animate__fadeInLeft">
+              <div class="card-header bg-transparent border-0 pt-4">
+                <h5 class="card-title mb-0">
+                  <i class="bi bi-pie-chart me-2"></i>{{
+                  trans.status_distribution }}
+                </h5>
+              </div>
+              <div class="card-body pt-0">
+                <div class="chart-container">
+                  <canvas id="statusChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-6">
+            <div class="card animate__animated animate__fadeInRight">
+              <div class="card-header bg-transparent border-0 pt-4">
+                <h5 class="card-title mb-0">
+                  <i class="bi bi-bar-chart me-2"></i>{{
+                  trans.response_time_chart }}
+                </h5>
+              </div>
+              <div class="card-body pt-0">
+                <div class="chart-container">
+                  <canvas id="responseTimeChart"></canvas>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Proxy table -->
+        <div class="card animate__animated animate__fadeInUp">
+          <div class="card-header bg-transparent border-0 pt-4">
+            <div class="d-flex justify-content-between align-items-center">
+              <h5 class="card-title mb-0">
+                <i class="bi bi-table me-2"></i>{{ trans.proxy_list }}
+              </h5>
+              <small class="text-muted"
+                >{{ trans.last_updated }}: {{ last_updated }}</small
+              >
+            </div>
+          </div>
+          <div class="card-body pt-0">
+            <div class="table-responsive">
+              <table class="table table-hover" id="proxyTable">
+                <thead>
+                  <tr>
+                    <th>{{ trans.proxy }}</th>
+                    <th>{{ trans.status }}</th>
+                    <th>{{ trans.response_time }}</th>
+                    <th>{{ trans.data_size }}</th>
+                    <th class="text-center">{{ trans.actions }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {% for item in results %}
+                  <tr>
+                    <td><code class="text-primary">{{ item.proxy }}</code></td>
+                    <td>
+                      {% if item.status == 'ok' %}
+                      <span class="proxy-status-working"
+                        >{{ trans.working }}</span
+                      >
+                      {% else %}
+                      <span class="proxy-status-failed"
+                        >{{ trans.failed }}</span
+                      >
+                      {% endif %}
+                    </td>
+                    <td>
+                      {% if item.response_time %}
+                      <span class="badge bg-light text-dark"
+                        >{{ "%.3f"|format(item.response_time) }}s</span
+                      >
+                      {% else %}
+                      <span class="text-muted">-</span>
+                      {% endif %}
+                    </td>
+                    <td>
+                      <span class="badge bg-light text-dark"
+                        >{{ item.data_size|filesizeformat }}</span
+                      >
+                    </td>
+                    <td class="text-center">
+                      <button
+                        class="btn btn-outline-primary copy-btn"
+                        onclick="copyProxy('{{ item.proxy }}')"
+                        title="{{ trans.copy_to_clipboard }}"
+                      >
+                        <i class="bi bi-clipboard"></i>
+                      </button>
+                    </td>
+                  </tr>
+                  {% endfor %}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      </div>
     </main>
-    
+
     <!-- Footer -->
-    <footer class="footer mt-auto py-4" style="background: var(--dark-bg); color: white;">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-4">
-                    <div class="d-flex align-items-center mb-2">
-                        <i class="bi bi-shield-lock me-2 fs-5"></i>
-                        <span class="fw-bold">ProxyHunter</span>
-                    </div>
-                    <p class="text-light opacity-75 mb-0">Professional proxy management for red team operations</p>
-                </div>
-                <div class="col-md-4 text-center">
-                    <div class="d-flex justify-content-center gap-3">
-                        <a href="https://github.com/sheng1111/Proxy-Hunter" class="text-light text-decoration-none">
-                            <i class="bi bi-github fs-5"></i>
-                        </a>
-                        <a href="#" class="text-light text-decoration-none">
-                            <i class="bi bi-file-text fs-5"></i>
-                        </a>
-                        <a href="https://github.com/sheng1111/Proxy-Hunter/issues" class="text-light text-decoration-none">
-                            <i class="bi bi-bug fs-5"></i>
-                        </a>
-                        <a href="#" class="text-light text-decoration-none">
-                            <i class="bi bi-envelope fs-5"></i>
-                        </a>
-                    </div>
-                </div>
-                <div class="col-md-4 text-md-end">
-                    <p class="text-light opacity-75 mb-1">© 2025 ProxyHunter</p>
-                    <small class="text-light opacity-50">Made with ❤️ for security professionals</small>
-                </div>
+    <footer
+      class="footer mt-auto py-4"
+      style="background: var(--dark-bg); color: white"
+    >
+      <div class="container">
+        <div class="row align-items-center">
+          <div class="col-md-4">
+            <div class="d-flex align-items-center mb-2">
+              <i class="bi bi-shield-lock me-2 fs-5"></i>
+              <span class="fw-bold">ProxyHunter</span>
             </div>
-            <hr class="my-3 opacity-25">
-            <div class="row">
-                <div class="col-12 text-center">
-                    <small class="text-light opacity-50">
-                        {{ trans.footer_disclaimer or 'This tool is for educational and authorized security testing purposes only.' }}
-                    </small>
-                </div>
+            <p class="text-light opacity-75 mb-0">
+              Professional proxy management for red team operations
+            </p>
+          </div>
+          <div class="col-md-4 text-center">
+            <div class="d-flex justify-content-center gap-3">
+              <a
+                href="https://github.com/sheng1111/Proxy-Hunter"
+                class="text-light text-decoration-none"
+                title="GitHub Repository"
+              >
+                <i class="bi bi-github fs-5"></i>
+              </a>
+              <a
+                href="https://github.com/sheng1111/Proxy-Hunter/blob/main/README.md"
+                class="text-light text-decoration-none"
+                title="Documentation"
+              >
+                <i class="bi bi-file-text fs-5"></i>
+              </a>
+              <a
+                href="https://github.com/sheng1111/Proxy-Hunter/issues"
+                class="text-light text-decoration-none"
+                title="Bug Reports"
+              >
+                <i class="bi bi-bug fs-5"></i>
+              </a>
+              <a
+                href="mailto:ysl58200@gmail.com"
+                class="text-light text-decoration-none"
+                title="Contact Email"
+              >
+                <i class="bi bi-envelope fs-5"></i>
+              </a>
             </div>
+          </div>
+          <div class="col-md-4 text-md-end">
+            <p class="text-light opacity-75 mb-1">© 2025 ProxyHunter</p>
+            <small class="text-light opacity-50"
+              >Made with ❤️ for security professionals</small
+            >
+          </div>
         </div>
+        <hr class="my-3 opacity-25" />
+        <div class="row">
+          <div class="col-12 text-center">
+            <small class="text-light opacity-50">
+              {{ trans.footer_disclaimer or 'This tool is for educational and
+              authorized security testing purposes only.' }}
+            </small>
+          </div>
+        </div>
+      </div>
     </footer>
 
     <!-- Scripts -->
@@ -446,248 +571,261 @@
     <script src="https://cdn.datatables.net/1.13.7/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.7/js/dataTables.bootstrap5.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.7.4/socket.io.js"></script>
-    
+
     <script>
-        // Global variables
-        const chartDataRaw = '{{ chart_data | safe }}';
-        const successCount = parseInt('{{ success | default(0) }}');
-        const failCount = parseInt('{{ fail | default(0) }}');
-        const translations = {
-            refreshSuccess: '{{ trans.refresh_success }}',
-            refreshError: '{{ trans.refresh_error }}',
-            copySuccess: '{{ trans.copy_success }}',
-            loading: '{{ trans.loading }}'
-        };
-        
-        let chartData = [];
-        try {
-            chartData = JSON.parse(chartDataRaw);
-        } catch(e) {
-            chartData = [];
-        }
-        
-        // Initialize WebSocket connection
-        const socket = io({
-            transports: ['websocket', 'polling'],
-            timeout: 20000,
-            forceNew: true
+      // Global variables
+      const chartDataRaw = "{{ chart_data | safe }}";
+      const successCount = parseInt("{{ success | default(0) }}");
+      const failCount = parseInt("{{ fail | default(0) }}");
+      const translations = {
+        refreshSuccess: "{{ trans.refresh_success }}",
+        refreshError: "{{ trans.refresh_error }}",
+        copySuccess: "{{ trans.copy_success }}",
+        loading: "{{ trans.loading }}",
+      };
+
+      let chartData = [];
+      try {
+        chartData = JSON.parse(chartDataRaw);
+      } catch (e) {
+        chartData = [];
+      }
+
+      // Initialize WebSocket connection
+      const socket = io({
+        transports: ["websocket", "polling"],
+        timeout: 20000,
+        forceNew: true,
+      });
+
+      // WebSocket event handlers
+      socket.on("connect", function () {
+        console.log("WebSocket connected");
+        socket.emit("request_stats");
+      });
+
+      socket.on("disconnect", function () {
+        console.log("WebSocket disconnected");
+      });
+
+      socket.on("stats_update", function (data) {
+        updateStatistics(data);
+        showToast("Statistics updated in real-time", "info");
+      });
+
+      socket.on("error", function (error) {
+        console.error("WebSocket error:", error);
+      });
+
+      // Initialize DataTable
+      $(document).ready(function () {
+        $("#proxyTable").DataTable({
+          pageLength: 25,
+          order: [[2, "asc"]],
+          language: {
+            search: "{{ trans.search }}:",
+            lengthMenu: "Show _MENU_ entries",
+            info: "Showing _START_ to _END_ of _TOTAL_ entries",
+            paginate: {
+              first: "First",
+              last: "Last",
+              next: "Next",
+              previous: "Previous",
+            },
+          },
+          responsive: true,
+          dom:
+            '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
+            '<"row"<"col-sm-12"tr>>' +
+            '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
         });
-        
-        // WebSocket event handlers
-        socket.on('connect', function() {
-            console.log('WebSocket connected');
-            socket.emit('request_stats');
-        });
-        
-        socket.on('disconnect', function() {
-            console.log('WebSocket disconnected');
-        });
-        
-        socket.on('stats_update', function(data) {
-            updateStatistics(data);
-            showToast('Statistics updated in real-time', 'info');
-        });
-        
-        socket.on('error', function(error) {
-            console.error('WebSocket error:', error);
+      });
+
+      // Initialize charts
+      initializeCharts();
+
+      function initializeCharts() {
+        // Status Distribution Chart
+        const statusCtx = document
+          .getElementById("statusChart")
+          .getContext("2d");
+        new Chart(statusCtx, {
+          type: "doughnut",
+          data: {
+            labels: ["{{ trans.working }}", "{{ trans.failed }}"],
+            datasets: [
+              {
+                data: [successCount, failCount],
+                backgroundColor: [
+                  "rgba(75, 192, 192, 0.8)",
+                  "rgba(255, 99, 132, 0.8)",
+                ],
+                borderColor: ["rgba(75, 192, 192, 1)", "rgba(255, 99, 132, 1)"],
+                borderWidth: 2,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "bottom",
+                labels: {
+                  padding: 20,
+                  usePointStyle: true,
+                },
+              },
+            },
+          },
         });
 
-        // Initialize DataTable
-        $(document).ready(function() {
-            $('#proxyTable').DataTable({
-                pageLength: 25,
-                order: [[2, 'asc']],
-                language: {
-                    search: "{{ trans.search }}:",
-                    lengthMenu: "Show _MENU_ entries",
-                    info: "Showing _START_ to _END_ of _TOTAL_ entries",
-                    paginate: {
-                        first: "First",
-                        last: "Last",
-                        next: "Next",
-                        previous: "Previous"
-                    }
+        // Response Time Chart
+        const responseTimeCtx = document
+          .getElementById("responseTimeChart")
+          .getContext("2d");
+        new Chart(responseTimeCtx, {
+          type: "bar",
+          data: {
+            labels: chartData.map((d) =>
+              d.proxy ? d.proxy.substring(0, 15) + "..." : "N/A"
+            ),
+            datasets: [
+              {
+                label: "{{ trans.response_time }}",
+                data: chartData.map((d) => d.response_time || 0),
+                backgroundColor: "rgba(54, 162, 235, 0.6)",
+                borderColor: "rgba(54, 162, 235, 1)",
+                borderWidth: 1,
+                borderRadius: 5,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                display: false,
+              },
+            },
+            scales: {
+              y: {
+                beginAtZero: true,
+                grid: {
+                  color: "rgba(0,0,0,0.1)",
                 },
-                responsive: true,
-                dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>' +
-                     '<"row"<"col-sm-12"tr>>' +
-                     '<"row"<"col-sm-12 col-md-5"i><"col-sm-12 col-md-7"p>>',
-            });
+              },
+              x: {
+                grid: {
+                  display: false,
+                },
+              },
+            },
+          },
         });
-        
-        // Initialize charts
-        initializeCharts();
-        
-        function initializeCharts() {
-            // Status Distribution Chart
-            const statusCtx = document.getElementById('statusChart').getContext('2d');
-            new Chart(statusCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['{{ trans.working }}', '{{ trans.failed }}'],
-                    datasets: [{
-                        data: [successCount, failCount],
-                        backgroundColor: [
-                            'rgba(75, 192, 192, 0.8)',
-                            'rgba(255, 99, 132, 0.8)'
-                        ],
-                        borderColor: [
-                            'rgba(75, 192, 192, 1)',
-                            'rgba(255, 99, 132, 1)'
-                        ],
-                        borderWidth: 2
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            position: 'bottom',
-                            labels: {
-                                padding: 20,
-                                usePointStyle: true
-                            }
-                        }
-                    }
-                }
+      }
+
+      // Refresh proxies function
+      let isRefreshing = false;
+
+      async function refreshProxies() {
+        const btn = document.querySelector(".btn-refresh");
+        const spinner = btn.querySelector(".loading-spinner");
+        const icon = btn.querySelector(".bi-arrow-clockwise");
+
+        // Prevent multiple simultaneous refreshes
+        if (isRefreshing) {
+          showToast("{{ trans.refresh_in_progress }}", "warning");
+          return;
+        }
+
+        try {
+          isRefreshing = true;
+
+          // Show loading state
+          btn.disabled = true;
+          spinner.style.display = "inline-block";
+          icon.style.display = "none";
+          btn.innerHTML =
+            '<span class="loading-spinner spinner-border spinner-border-sm" role="status"></span> {{ trans.refreshing }}...';
+
+          const response = await fetch("/api/refresh", { method: "POST" });
+          const data = await response.json();
+
+          if (response.ok) {
+            showToast("{{ trans.refresh_started }}", "success");
+            // Show progress message
+            showToast("{{ trans.refresh_progress }}", "info");
+
+            // Auto reload after successful completion
+            setTimeout(() => {
+              location.reload();
+            }, 5000);
+          } else if (response.status === 409) {
+            // Handle conflict - refresh already in progress
+            showToast("{{ trans.refresh_already_running }}", "info");
+          } else if (response.status === 429) {
+            // Handle rate limiting
+            showToast("{{ trans.refresh_rate_limit }}", "warning");
+          } else {
+            throw new Error(data.message || "Refresh failed");
+          }
+        } catch (error) {
+          console.error("Refresh error:", error);
+          if (error.message.includes("409")) {
+            showToast("{{ trans.refresh_already_running }}", "info");
+          } else {
+            showToast("{{ trans.refresh_error }}: " + error.message, "danger");
+          }
+        } finally {
+          // Reset button state after delay
+          setTimeout(() => {
+            isRefreshing = false;
+            btn.disabled = false;
+            spinner.style.display = "none";
+            icon.style.display = "inline-block";
+            btn.innerHTML =
+              '<i class="bi bi-arrow-clockwise"></i> {{ trans.refresh }}';
+          }, 2000);
+        }
+      }
+
+      // Copy proxy function
+      function copyProxy(proxy) {
+        if (navigator.clipboard) {
+          navigator.clipboard
+            .writeText(proxy)
+            .then(() => {
+              showToast(translations.copySuccess + " " + proxy, "success");
+            })
+            .catch((err) => {
+              console.error("Copy failed:", err);
+              fallbackCopy(proxy);
             });
-            
-            // Response Time Chart
-            const responseTimeCtx = document.getElementById('responseTimeChart').getContext('2d');
-            new Chart(responseTimeCtx, {
-                type: 'bar',
-                data: {
-                    labels: chartData.map(d => d.proxy ? d.proxy.substring(0, 15) + '...' : 'N/A'),
-                    datasets: [{
-                        label: '{{ trans.response_time }}',
-                        data: chartData.map(d => d.response_time || 0),
-                        backgroundColor: 'rgba(54, 162, 235, 0.6)',
-                        borderColor: 'rgba(54, 162, 235, 1)',
-                        borderWidth: 1,
-                        borderRadius: 5
-                    }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: {
-                        legend: {
-                            display: false
-                        }
-                    },
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            grid: {
-                                color: 'rgba(0,0,0,0.1)'
-                            }
-                        },
-                        x: {
-                            grid: {
-                                display: false
-                            }
-                        }
-                    }
-                }
-            });
+        } else {
+          fallbackCopy(proxy);
         }
-        
-        // Refresh proxies function
-        let isRefreshing = false;
-        
-        async function refreshProxies() {
-            const btn = document.querySelector('.btn-refresh');
-            const spinner = btn.querySelector('.loading-spinner');
-            const icon = btn.querySelector('.bi-arrow-clockwise');
-            
-            // Prevent multiple simultaneous refreshes
-            if (isRefreshing) {
-                showToast('{{ trans.refresh_in_progress }}', 'warning');
-                return;
-            }
-            
-            try {
-                isRefreshing = true;
-                
-                // Show loading state
-                btn.disabled = true;
-                spinner.style.display = 'inline-block';
-                icon.style.display = 'none';
-                btn.innerHTML = '<span class="loading-spinner spinner-border spinner-border-sm" role="status"></span> {{ trans.refreshing }}...';
-                
-                const response = await fetch('/api/refresh', { method: 'POST' });
-                const data = await response.json();
-                
-                if (response.ok) {
-                    showToast('{{ trans.refresh_started }}', 'success');
-                    // Show progress message
-                    showToast('{{ trans.refresh_progress }}', 'info');
-                    
-                    // Auto reload after successful completion
-                    setTimeout(() => { 
-                        location.reload(); 
-                    }, 5000);
-                } else if (response.status === 409) {
-                    // Handle conflict - refresh already in progress
-                    showToast('{{ trans.refresh_already_running }}', 'info');
-                } else if (response.status === 429) {
-                    // Handle rate limiting
-                    showToast('{{ trans.refresh_rate_limit }}', 'warning');
-                } else {
-                    throw new Error(data.message || 'Refresh failed');
-                }
-            } catch (error) {
-                console.error('Refresh error:', error);
-                if (error.message.includes('409')) {
-                    showToast('{{ trans.refresh_already_running }}', 'info');
-                } else {
-                    showToast('{{ trans.refresh_error }}: ' + error.message, 'danger');
-                }
-            } finally {
-                // Reset button state after delay
-                setTimeout(() => {
-                    isRefreshing = false;
-                    btn.disabled = false;
-                    spinner.style.display = 'none';
-                    icon.style.display = 'inline-block';
-                    btn.innerHTML = '<i class="bi bi-arrow-clockwise"></i> {{ trans.refresh }}';
-                }, 2000);
-            }
+      }
+
+      function fallbackCopy(text) {
+        const textArea = document.createElement("textarea");
+        textArea.value = text;
+        document.body.appendChild(textArea);
+        textArea.select();
+        try {
+          document.execCommand("copy");
+          showToast(translations.copySuccess + " " + text, "success");
+        } catch (err) {
+          console.error("Fallback copy failed:", err);
+          prompt("Copy this text:", text);
         }
-        
-        // Copy proxy function
-        function copyProxy(proxy) {
-            if (navigator.clipboard) {
-                navigator.clipboard.writeText(proxy).then(() => {
-                    showToast(translations.copySuccess + ' ' + proxy, 'success');
-                }).catch(err => {
-                    console.error('Copy failed:', err);
-                    fallbackCopy(proxy);
-                });
-            } else {
-                fallbackCopy(proxy);
-            }
-        }
-        
-        function fallbackCopy(text) {
-            const textArea = document.createElement('textarea');
-            textArea.value = text;
-            document.body.appendChild(textArea);
-            textArea.select();
-            try {
-                document.execCommand('copy');
-                showToast(translations.copySuccess + ' ' + text, 'success');
-            } catch (err) {
-                console.error('Fallback copy failed:', err);
-                prompt('Copy this text:', text);
-            }
-            document.body.removeChild(textArea);
-        }
-        
-        // Toast notification function
-        function showToast(message, type = 'info') {
-            const toastHtml = `
+        document.body.removeChild(textArea);
+      }
+
+      // Toast notification function
+      function showToast(message, type = "info") {
+        const toastHtml = `
                 <div class="toast" role="alert" aria-live="assertive" aria-atomic="true">
                     <div class="toast-header">
                         <div class="rounded me-2 bg-${type}" style="width: 20px; height: 20px;"></div>
@@ -697,44 +835,51 @@
                     <div class="toast-body">${message}</div>
                 </div>
             `;
-            
-            const toastElement = $(toastHtml);
-            $('.toast-container').append(toastElement);
-            
-            const toast = new bootstrap.Toast(toastElement[0]);
-            toast.show();
-            
-            toastElement.on('hidden.bs.toast', function() {
-                $(this).remove();
-            });
+
+        const toastElement = $(toastHtml);
+        $(".toast-container").append(toastElement);
+
+        const toast = new bootstrap.Toast(toastElement[0]);
+        toast.show();
+
+        toastElement.on("hidden.bs.toast", function () {
+          $(this).remove();
+        });
+      }
+
+      // Fallback polling for clients without WebSocket support
+      if (!socket.connected) {
+        setInterval(() => {
+          fetch("/api/data")
+            .then((response) => response.json())
+            .then((data) => {
+              updateStatistics(data);
+            })
+            .catch((error) => console.error("Fallback polling error:", error));
+        }, 30000); // 30 seconds fallback
+      }
+
+      function updateStatistics(data) {
+        // Update stat cards with null checks
+        document.querySelector(".stat-card.primary h2").textContent =
+          data.total || 0;
+        document.querySelector(".stat-card.success h2").textContent =
+          data.success || 0;
+        document.querySelector(".stat-card.danger h2").textContent =
+          data.fail || 0;
+
+        // Handle null/undefined average response time
+        const avgElement = document.querySelector(".stat-card.info h2");
+        if (
+          data.average !== null &&
+          data.average !== undefined &&
+          !isNaN(data.average)
+        ) {
+          avgElement.textContent = parseFloat(data.average).toFixed(3) + "s";
+        } else {
+          avgElement.textContent = "N/A";
         }
-        
-        // Fallback polling for clients without WebSocket support
-        if (!socket.connected) {
-            setInterval(() => {
-                fetch('/api/data')
-                    .then(response => response.json())
-                    .then(data => {
-                        updateStatistics(data);
-                    })
-                    .catch(error => console.error('Fallback polling error:', error));
-            }, 30000); // 30 seconds fallback
-        }
-        
-        function updateStatistics(data) {
-            // Update stat cards with null checks
-            document.querySelector('.stat-card.primary h2').textContent = data.total || 0;
-            document.querySelector('.stat-card.success h2').textContent = data.success || 0;
-            document.querySelector('.stat-card.danger h2').textContent = data.fail || 0;
-            
-            // Handle null/undefined average response time
-            const avgElement = document.querySelector('.stat-card.info h2');
-            if (data.average !== null && data.average !== undefined && !isNaN(data.average)) {
-                avgElement.textContent = parseFloat(data.average).toFixed(3) + 's';
-            } else {
-                avgElement.textContent = 'N/A';
-            }
-        }
+      }
     </script>
-</body>
+  </body>
 </html>

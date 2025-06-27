@@ -1,23 +1,23 @@
 [build-system]
-requires = ["setuptools>=61.0", "wheel"]
+requires = ["setuptools>=77.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "proxyhunter"
-version = "2.0.0"
+name = "proxy-hunter"
+version = "2.0.2"
 description = "Professional proxy fetching and validation tool for red team operations and web scraping"
 readme = "README.md"
 requires-python = ">=3.8"
 license = {text = "MIT"}
+license-files = ["LICENSE"]
 authors = [
-    {name = "ProxyHunter Team", email = "contact@proxyhunter.dev"},
+    {name = "sheng1111", email = "ysl58200@gmail.com"},
 ]
 keywords = ["proxy", "scraping", "red-team", "security", "networking", "validation", "anonymity"]
 classifiers = [
     "Development Status :: 4 - Beta",
     "Intended Audience :: Developers",
     "Intended Audience :: Information Technology",
-    "License :: OSI Approved :: MIT License",
     "Operating System :: OS Independent",
     "Programming Language :: Python :: 3",
     "Programming Language :: Python :: 3.8",
@@ -36,6 +36,10 @@ dependencies = [
     "flask>=3.1.1",
     "urllib3>=2.2.0",
     "certifi>=2024.0.0",
+    "flask-socketio>=5.3.0",
+    "python-socketio>=5.10.0",
+    "eventlet>=0.33.0",
+    "Jinja2>=3.1.0"
 ]
 
 [project.optional-dependencies]
@@ -57,17 +61,17 @@ full = [
 ]
 
 [project.urls]
-Homepage = "https://github.com/proxyhunter/proxyhunter"
-Repository = "https://github.com/proxyhunter/proxyhunter"
-Documentation = "https://proxyhunter.readthedocs.io/"
-"Bug Reports" = "https://github.com/proxyhunter/proxyhunter/issues"
+Homepage = "https://github.com/sheng1111/Proxy-Hunter"
+Repository = "https://github.com/sheng1111/Proxy-Hunter"
+Documentation = "https://github.com/sheng1111/Proxy-Hunter/blob/main/README.md"
+"Bug Reports" = "https://github.com/sheng1111/Proxy-Hunter/issues"
 
 [project.scripts]
 proxyhunter = "proxyhunter.__main__:main"
 proxy-hunter = "proxyhunter.__main__:main"
 
 [tool.setuptools]
-packages = ["proxyhunter"]
+packages = ["proxyhunter", "proxyhunter.i18n", "proxyhunter.public"]
 
 [tool.setuptools.package-data]
 proxyhunter = ["public/*.html", "public/*.css", "public/*.js", "i18n/*.json"]
@@ -96,4 +100,4 @@ warn_redundant_casts = true
 warn_unused_ignores = true
 warn_no_return = true
 warn_unreachable = true
-strict_equality = true 
+strict_equality = true

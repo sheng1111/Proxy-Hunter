@@ -1,2 +1,76 @@
+# 編譯輸出
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# 發布/打包
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64/
+parts/
+sdist/
+var/
+wheels/
+pip-wheel-metadata/
+share/python-wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PyInstaller
+*.manifest
+*.spec
+
+# 單元測試
+htmlcov/
+.tox/
+.nox/
+.coverage
+.coverage.*
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+*.py,cover
+.hypothesis/
+.pytest_cache/
+
+# 環境
+.env
 .venv
-__pycache__
+env/
+venv/
+ENV/
+env.bak/
+venv.bak/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# 作業系統
+.DS_Store
+Thumbs.db
+
+# 資料庫
+*.db
+*.sqlite3
+
+# 日誌
+*.log
+
+# 其他
+.mypy_cache/
+.dmypy.json
+dmypy.json

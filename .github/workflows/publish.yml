@@ -1,0 +1,49 @@
+name: 建置並發布到 PyPI
+
+# 觸發條件：當創建 release 或推送 tag 時
+on:
+  release:
+    types: [published] # 當發布 release 時觸發
+  push:
+    tags:
+      - "v*" # 當推送以 v 開頭的 tag 時觸發
+
+jobs:
+  build-and-publish:
+    name: 建置並發布 Python 套件到 PyPI
+    runs-on: ubuntu-latest
+
+    steps:
+      # 檢出程式碼
+      - name: 檢出程式碼
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # 獲取完整的 git 歷史
+
+      # 設定 Python 環境
+      - name: 設定 Python 環境
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.9"
+
+      # 安裝建置相依套件
+      - name: 安裝相依套件
+        run: |
+          python -m pip install --upgrade pip
+          pip install build twine
+
+      # 建置套件
+      - name: 建置套件
+        run: python -m build
+
+      # 檢查建置的套件
+      - name: 檢查建置檔案
+        run: python -m twine check dist/*
+
+      # 發布到正式 PyPI
+      - name: 發布到 PyPI
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          password: ${{ secrets.PYPI_API_TOKEN }}
+          verbose: true

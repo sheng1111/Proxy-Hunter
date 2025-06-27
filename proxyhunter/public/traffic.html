@@ -1,0 +1,752 @@
+<!DOCTYPE html>
+<html lang="{{ lang }}">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{ trans.title }} - {{ trans.traffic_monitor }}</title>
+    <link
+      href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css"
+      rel="stylesheet"
+    />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.9.1/chart.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.6.1/socket.io.js"></script>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      body {
+        font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        min-height: 100vh;
+        color: #333;
+      }
+
+      .container {
+        max-width: 1400px;
+        margin: 0 auto;
+        padding: 20px;
+      }
+
+      .header {
+        text-align: center;
+        margin-bottom: 30px;
+        color: white;
+      }
+
+      .header h1 {
+        font-size: 2.5rem;
+        margin-bottom: 10px;
+        text-shadow: 0 2px 4px rgba(0, 0, 0, 0.3);
+      }
+
+      .header p {
+        font-size: 1.1rem;
+        opacity: 0.9;
+      }
+
+      .nav-links {
+        text-align: center;
+        margin-bottom: 30px;
+      }
+
+      .nav-links a {
+        color: white;
+        text-decoration: none;
+        margin: 0 15px;
+        padding: 10px 20px;
+        border: 2px solid rgba(255, 255, 255, 0.3);
+        border-radius: 25px;
+        transition: all 0.3s ease;
+      }
+
+      .nav-links a:hover,
+      .nav-links a.active {
+        background: rgba(255, 255, 255, 0.2);
+        border-color: rgba(255, 255, 255, 0.6);
+      }
+
+      .stats-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+      }
+
+      .stat-card {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 25px;
+        text-align: center;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        transition: transform 0.3s ease, box-shadow 0.3s ease;
+      }
+
+      .stat-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 12px 40px rgba(31, 38, 135, 0.5);
+      }
+
+      .stat-card .icon {
+        font-size: 2.5rem;
+        margin-bottom: 15px;
+        color: #667eea;
+      }
+
+      .stat-card .value {
+        font-size: 2rem;
+        font-weight: bold;
+        margin-bottom: 10px;
+        color: #333;
+      }
+
+      .stat-card .label {
+        font-size: 0.9rem;
+        color: #666;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+      }
+
+      .main-content {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 30px;
+        margin-bottom: 30px;
+      }
+
+      .chart-container {
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+        height: 350px;
+        max-height: 350px;
+        overflow: hidden;
+        position: relative;
+      }
+
+      .chart-container canvas {
+        max-height: 280px !important;
+        max-width: 100% !important;
+        position: relative;
+      }
+
+      .chart-header {
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      .chart-header h3 {
+        color: #333;
+        font-size: 1.3rem;
+        margin-bottom: 5px;
+      }
+
+      .chart-header p {
+        color: #666;
+        font-size: 0.9rem;
+      }
+
+      .traffic-table-container {
+        grid-column: 1 / -1;
+        background: rgba(255, 255, 255, 0.95);
+        border-radius: 15px;
+        padding: 25px;
+        box-shadow: 0 8px 32px rgba(31, 38, 135, 0.37);
+        backdrop-filter: blur(4px);
+        border: 1px solid rgba(255, 255, 255, 0.18);
+      }
+
+      .table-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+      }
+
+      .table-header h3 {
+        color: #333;
+        font-size: 1.3rem;
+      }
+
+      .controls {
+        display: flex;
+        gap: 10px;
+      }
+
+      .btn {
+        padding: 8px 16px;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 0.9rem;
+        transition: all 0.3s ease;
+      }
+
+      .btn-primary {
+        background: #667eea;
+        color: white;
+      }
+
+      .btn-primary:hover {
+        background: #5a6fd8;
+      }
+
+      .btn-secondary {
+        background: #f8f9fa;
+        color: #333;
+        border: 1px solid #ddd;
+      }
+
+      .btn-secondary:hover {
+        background: #e9ecef;
+      }
+
+      .traffic-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-top: 10px;
+      }
+
+      .traffic-table th,
+      .traffic-table td {
+        padding: 12px;
+        text-align: left;
+        border-bottom: 1px solid #eee;
+      }
+
+      .traffic-table th {
+        background: #f8f9fa;
+        font-weight: 600;
+        color: #333;
+        position: sticky;
+        top: 0;
+      }
+
+      .traffic-table tr:hover {
+        background: #f8f9fa;
+      }
+
+      .status-badge {
+        padding: 4px 8px;
+        border-radius: 12px;
+        font-size: 0.8rem;
+        font-weight: 500;
+      }
+
+      .status-success {
+        background: #d4edda;
+        color: #155724;
+      }
+
+      .status-error {
+        background: #f8d7da;
+        color: #721c24;
+      }
+
+      .method-badge {
+        padding: 2px 6px;
+        border-radius: 4px;
+        font-size: 0.7rem;
+        font-weight: 600;
+        text-transform: uppercase;
+      }
+
+      .method-get {
+        background: #e3f2fd;
+        color: #1565c0;
+      }
+      .method-post {
+        background: #e8f5e8;
+        color: #2e7d32;
+      }
+      .method-put {
+        background: #fff3e0;
+        color: #f57c00;
+      }
+      .method-delete {
+        background: #ffebee;
+        color: #c62828;
+      }
+
+      .url-cell {
+        max-width: 300px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .response-time {
+        font-family: monospace;
+        color: #666;
+      }
+
+      .loading {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+      }
+
+      .loading i {
+        font-size: 2rem;
+        margin-bottom: 10px;
+        animation: spin 1s linear infinite;
+      }
+
+      @keyframes spin {
+        0% {
+          transform: rotate(0deg);
+        }
+        100% {
+          transform: rotate(360deg);
+        }
+      }
+
+      .no-data {
+        text-align: center;
+        padding: 40px;
+        color: #666;
+      }
+
+      .auto-refresh {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        color: white;
+        margin-top: 10px;
+        justify-content: center;
+      }
+
+      .auto-refresh input[type="checkbox"] {
+        transform: scale(1.2);
+      }
+
+      @media (max-width: 768px) {
+        .main-content {
+          grid-template-columns: 1fr;
+        }
+
+        .stats-grid {
+          grid-template-columns: repeat(2, 1fr);
+        }
+
+        .controls {
+          flex-direction: column;
+        }
+
+        .table-header {
+          flex-direction: column;
+          gap: 15px;
+          align-items: stretch;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="header">
+        <h1><i class="fas fa-chart-line"></i> {{ trans.traffic_monitor }}</h1>
+        <p>{{ trans.real_time_monitoring }}</p>
+      </div>
+
+      <div class="nav-links">
+        <a href="/?lang={{ lang }}"
+          ><i class="fas fa-home"></i> {{ trans.dashboard }}</a
+        >
+        <a href="/traffic?lang={{ lang }}" class="active"
+          ><i class="fas fa-chart-line"></i> {{ trans.traffic_monitor }}</a
+        >
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="icon"><i class="fas fa-globe"></i></div>
+          <div class="value" id="total-requests">
+            {{ traffic_stats.get('total_requests', 0) }}
+          </div>
+          <div class="label">{{ trans.total_requests }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="icon"><i class="fas fa-check-circle"></i></div>
+          <div class="value" id="successful-requests">
+            {{ traffic_stats.get('successful_requests', 0) }}
+          </div>
+          <div class="label">{{ trans.successful }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="icon"><i class="fas fa-times-circle"></i></div>
+          <div class="value" id="failed-requests">
+            {{ traffic_stats.get('failed_requests', 0) }}
+          </div>
+          <div class="label">{{ trans.fail }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="icon"><i class="fas fa-server"></i></div>
+          <div class="value" id="unique-proxies">
+            {{ traffic_stats.get('unique_proxies', 0) }}
+          </div>
+          <div class="label">{{ trans.unique_proxies }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="icon"><i class="fas fa-clock"></i></div>
+          <div class="value" id="avg-response-time">
+            {{ "%.3f"|format(traffic_stats.get('avg_response_time', 0)) }}s
+          </div>
+          <div class="label">{{ trans.avg_response_time }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="icon"><i class="fas fa-database"></i></div>
+          <div class="value" id="total-data">
+            {{ traffic_stats.get('total_data', 0)|filesizeformat }}
+          </div>
+          <div class="label">{{ trans.data_transferred }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="icon"><i class="fas fa-users"></i></div>
+          <div class="value" id="active-sessions">{{ active_sessions }}</div>
+          <div class="label">{{ trans.active_sessions }}</div>
+        </div>
+        <div class="stat-card">
+          <div class="icon"><i class="fas fa-stopwatch"></i></div>
+          <div class="value" id="session-duration">
+            {{ "%.0f"|format(traffic_stats.get('session_duration', 0)) }}s
+          </div>
+          <div class="label">{{ trans.session_duration }}</div>
+        </div>
+      </div>
+
+      <div class="main-content">
+        <div class="chart-container">
+          <div class="chart-header">
+            <h3>{{ trans.request_timeline }}</h3>
+            <p>{{ trans.requests_over_time }}</p>
+          </div>
+          <canvas id="timeline-chart" width="400" height="200"></canvas>
+        </div>
+
+        <div class="chart-container">
+          <div class="chart-header">
+            <h3>{{ trans.success_rate }}</h3>
+            <p>{{ trans.success_vs_failures }}</p>
+          </div>
+          <canvas id="success-chart" width="400" height="200"></canvas>
+        </div>
+      </div>
+
+      <div class="traffic-table-container">
+        <div class="table-header">
+          <h3>{{ trans.recent_traffic }}</h3>
+          <div class="controls">
+            <button class="btn btn-secondary" onclick="refreshTraffic()">
+              <i class="fas fa-sync-alt"></i> {{ trans.refresh }}
+            </button>
+            <button class="btn btn-primary" onclick="clearTraffic()">
+              <i class="fas fa-trash"></i> {{ trans.clear_data }}
+            </button>
+          </div>
+        </div>
+
+        <div id="traffic-table-wrapper">
+          {% if recent_traffic %}
+          <table class="traffic-table">
+            <thead>
+              <tr>
+                <th>{{ trans.timestamp }}</th>
+                <th>{{ trans.method }}</th>
+                <th>{{ trans.target_url }}</th>
+                <th>{{ trans.proxy }}</th>
+                <th>{{ trans.status }}</th>
+                <th>{{ trans.response_time }}</th>
+                <th>{{ trans.size }}</th>
+              </tr>
+            </thead>
+            <tbody id="traffic-tbody">
+              {% for traffic in recent_traffic %}
+              <tr>
+                <td>{{ traffic.timestamp[:19] }}</td>
+                <td>
+                  <span
+                    class="method-badge method-{{ traffic.method.lower() }}"
+                  >
+                    {{ traffic.method }}
+                  </span>
+                </td>
+                <td class="url-cell" title="{{ traffic.url }}">
+                  {{ traffic.url }}
+                </td>
+                <td>{{ traffic.proxy }}</td>
+                <td>
+                  {% if traffic.status_code %} {% if traffic.status_code < 400
+                  %}
+                  <span class="status-badge status-success"
+                    >{{ traffic.status_code }}</span
+                  >
+                  {% else %}
+                  <span class="status-badge status-error"
+                    >{{ traffic.status_code }}</span
+                  >
+                  {% endif %} {% else %}
+                  <span class="status-badge status-error">Error</span>
+                  {% endif %}
+                </td>
+                <td class="response-time">
+                  {% if traffic.response_time %} {{
+                  "%.3f"|format(traffic.response_time) }}s {% else %} - {% endif
+                  %}
+                </td>
+                <td>{{ traffic.data_size|filesizeformat }}</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+          {% else %}
+          <div class="no-data">
+            <i class="fas fa-chart-line"></i>
+            <p>{{ trans.no_traffic_data }}</p>
+            <p style="font-size: 0.9rem; color: #999; margin-top: 10px">
+              {{ trans.start_using_proxies }}
+            </p>
+          </div>
+          {% endif %}
+        </div>
+      </div>
+
+      <div class="auto-refresh">
+        <input type="checkbox" id="auto-refresh-toggle" checked />
+        <label for="auto-refresh-toggle"
+          >{{ trans.auto_refresh }} (每5秒)</label
+        >
+      </div>
+    </div>
+
+    <script type="application/json" id="initial-data">
+      {
+        "successfulRequests": {{ traffic_stats.get('successful_requests', 0) }},
+        "failedRequests": {{ traffic_stats.get('failed_requests', 0) }},
+        "translations": {
+          "confirm_clear_traffic": "{{ trans.get('confirm_clear_traffic', '確定要清除所有流量記錄嗎？') }}",
+          "no_traffic_data": "{{ trans.no_traffic_data }}"
+        }
+      }
+    </script>
+    <script>
+      // Global data from template
+      const INITIAL_DATA = JSON.parse(
+        document.getElementById("initial-data").textContent
+      );
+
+      // WebSocket connection
+      const socket = io();
+      let autoRefresh = true;
+      let timelineChart, successChart;
+
+      // Initialize charts
+      function initCharts() {
+        // Timeline chart
+        const timelineCtx = document
+          .getElementById("timeline-chart")
+          .getContext("2d");
+        timelineChart = new Chart(timelineCtx, {
+          type: "line",
+          data: {
+            labels: [],
+            datasets: [
+              {
+                label: "Requests",
+                data: [],
+                borderColor: "#667eea",
+                backgroundColor: "rgba(102, 126, 234, 0.1)",
+                tension: 0.4,
+                fill: true,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+              y: {
+                beginAtZero: true,
+                ticks: {
+                  stepSize: 1,
+                },
+              },
+            },
+          },
+        });
+
+        // Success rate chart
+        const successCtx = document
+          .getElementById("success-chart")
+          .getContext("2d");
+
+        successChart = new Chart(successCtx, {
+          type: "doughnut",
+          data: {
+            labels: ["Successful", "Failed"],
+            datasets: [
+              {
+                data: [
+                  INITIAL_DATA.successfulRequests,
+                  INITIAL_DATA.failedRequests,
+                ],
+                backgroundColor: ["#28a745", "#dc3545"],
+                borderWidth: 0,
+              },
+            ],
+          },
+          options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+              legend: {
+                position: "bottom",
+              },
+            },
+          },
+        });
+      }
+
+      // Update statistics
+      function updateStats(data) {
+        document.getElementById("total-requests").textContent =
+          data.total_requests;
+        document.getElementById("successful-requests").textContent =
+          data.successful_requests;
+        document.getElementById("failed-requests").textContent =
+          data.failed_requests;
+        document.getElementById("unique-proxies").textContent =
+          data.unique_proxies;
+        document.getElementById("avg-response-time").textContent =
+          data.avg_response_time.toFixed(3) + "s";
+        document.getElementById("total-data").textContent = formatFileSize(
+          data.total_data
+        );
+        document.getElementById("active-sessions").textContent =
+          data.active_sessions || 0;
+        document.getElementById("session-duration").textContent =
+          Math.floor(data.session_duration || 0) + "s";
+
+        // Update success chart
+        if (successChart) {
+          successChart.data.datasets[0].data = [
+            data.successful_requests,
+            data.failed_requests,
+          ];
+          successChart.update();
+        }
+      }
+
+      // Update traffic table
+      function updateTrafficTable(traffic) {
+        const tbody = document.getElementById("traffic-tbody");
+        if (!tbody) return;
+
+        // Clear existing rows
+        tbody.innerHTML = "";
+
+        if (traffic.length === 0) {
+          document.getElementById("traffic-table-wrapper").innerHTML = `
+                <div class="no-data">
+                    <i class="fas fa-chart-line"></i>
+                    <p>${INITIAL_DATA.translations.no_traffic_data}</p>
+                </div>
+            `;
+          return;
+        }
+
+        // Add new rows
+        traffic.forEach((item) => {
+          const row = document.createElement("tr");
+
+          const statusBadge = item.status_code
+            ? item.status_code < 400
+              ? `<span class="status-badge status-success">${item.status_code}</span>`
+              : `<span class="status-badge status-error">${item.status_code}</span>`
+            : '<span class="status-badge status-error">Error</span>';
+
+          const responseTime = item.response_time
+            ? `${item.response_time.toFixed(3)}s`
+            : "-";
+
+          row.innerHTML = `
+                  <td>${item.timestamp.substr(0, 19)}</td>
+                  <td><span class="method-badge method-${item.method.toLowerCase()}">${
+            item.method
+          }</span></td>
+                  <td class="url-cell" title="${item.url}">${item.url}</td>
+                  <td>${item.proxy}</td>
+                  <td>${statusBadge}</td>
+                  <td class="response-time">${responseTime}</td>
+                  <td>${formatFileSize(item.data_size)}</td>
+              `;
+          tbody.appendChild(row);
+        });
+      }
+
+      // Format file size
+      function formatFileSize(bytes) {
+        if (bytes === 0) return "0 B";
+        const sizes = ["B", "KB", "MB", "GB"];
+        const i = Math.floor(Math.log(bytes) / Math.log(1024));
+        return (
+          Math.round((bytes / Math.pow(1024, i)) * 10) / 10 + " " + sizes[i]
+        );
+      }
+
+      // Refresh traffic data
+      function refreshTraffic() {
+        socket.emit("request_traffic");
+      }
+
+      // Clear traffic logs
+      function clearTraffic() {
+        if (confirm(INITIAL_DATA.translations.confirm_clear_traffic)) {
+          fetch("/api/traffic/clear", { method: "POST" })
+            .then((response) => response.json())
+            .then((data) => {
+              if (data.status === "success") {
+                refreshTraffic();
+              }
+            });
+        }
+      }
+
+      // WebSocket event handlers
+      socket.on("connect", function () {
+        console.log("Connected to server");
+        socket.emit("request_traffic");
+      });
+
+      socket.on("traffic_update", function (data) {
+        updateStats(data.stats);
+        updateTrafficTable(data.recent);
+      });
+
+      // Auto refresh toggle
+      document
+        .getElementById("auto-refresh-toggle")
+        .addEventListener("change", function () {
+          autoRefresh = this.checked;
+        });
+
+      // Auto refresh timer
+      setInterval(function () {
+        if (autoRefresh) {
+          socket.emit("request_traffic");
+        }
+      }, 5000);
+
+      // Initialize everything
+      document.addEventListener("DOMContentLoaded", function () {
+        initCharts();
+      });
+    </script>
+  </body>
+</html>
