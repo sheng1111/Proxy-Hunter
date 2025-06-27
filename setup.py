@@ -20,8 +20,8 @@ requirements = [
 ]
 
 setup(
-    name="proxy-hunter",
-    version="2.0.2",
+    name="proxy-meshx",
+    version="2.0.5",
     author="sheng1111",
     author_email="ysl58200@gmail.com",
     description="Professional proxy fetching and validation tool for red team operations and web scraping",
@@ -84,8 +84,8 @@ setup(
     },
     entry_points={
         'console_scripts': [
-            'proxyhunter=proxyhunter.__main__:main',
-            'proxy-hunter=proxyhunter.__main__:main',
+            'proxymeshx=proxyhunter.__main__:main',
+            'proxy-meshx=proxyhunter.__main__:main',
         ],
     },
     zip_safe=False,

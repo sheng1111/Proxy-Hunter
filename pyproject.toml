@@ -3,8 +3,8 @@ requires = ["setuptools>=77.0", "wheel"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "proxy-hunter"
-version = "2.0.2"
+name = "proxy-meshx"
+version = "2.0.5"
 description = "Professional proxy fetching and validation tool for red team operations and web scraping"
 readme = "README.md"
 requires-python = ">=3.8"
@@ -67,8 +67,8 @@ Documentation = "https://github.com/sheng1111/Proxy-Hunter/blob/main/README.md"
 "Bug Reports" = "https://github.com/sheng1111/Proxy-Hunter/issues"
 
 [project.scripts]
-proxyhunter = "proxyhunter.__main__:main"
-proxy-hunter = "proxyhunter.__main__:main"
+proxymeshx = "proxyhunter.__main__:main"
+proxy-meshx = "proxyhunter.__main__:main"
 
 [tool.setuptools]
 packages = ["proxyhunter", "proxyhunter.i18n", "proxyhunter.public"]

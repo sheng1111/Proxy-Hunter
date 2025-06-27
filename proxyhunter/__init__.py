@@ -45,7 +45,7 @@ from .core import (
 from .proxy_session import ProxySession
 
 # Version information
-__version__ = "2.0.2"
+__version__ = "2.0.5"
 __author__ = "Terry Wang"
 __github__ = "https://github.com/sheng1111/Proxy-Hunter"
 __license__ = "MIT"
