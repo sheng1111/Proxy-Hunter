@@ -8,7 +8,7 @@ version = "2.0.2"
 description = "Professional proxy fetching and validation tool for red team operations and web scraping"
 readme = "README.md"
 requires-python = ">=3.8"
-license = {text = "MIT"}
+license = "MIT"
 license-files = ["LICENSE"]
 authors = [
     {name = "sheng1111", email = "ysl58200@gmail.com"},
