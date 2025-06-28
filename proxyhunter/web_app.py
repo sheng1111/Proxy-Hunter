@@ -1,6 +1,10 @@
 """Modern Flask web dashboard for ProxyHunter."""
 
-from .i18n import get_translation, get_supported_languages, get_language_name
+from .i18n_utils import (
+    get_translation,
+    get_supported_languages,
+    get_language_name,
+)
 import json
 import logging
 import os
@@ -25,9 +29,8 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 
 # Initialize Flask app
-app = Flask(__name__, template_folder='public')
-app.config['SECRET_KEY'] = os.environ.get(
-    'SECRET_KEY', 'proxy-hunter-secret-key')
+app = Flask(__name__, template_folder="public")
+app.config["SECRET_KEY"] = os.environ.get("SECRET_KEY", "proxy-hunter-secret-key")
 
 # Initialize SocketIO with memory-efficient settings
 socketio = SocketIO(
@@ -35,8 +38,8 @@ socketio = SocketIO(
     cors_allowed_origins="*",
     logger=False,
     engineio_logger=False,
-    async_mode='threading',
-    max_http_buffer_size=1024*1024  # 1MB limit
+    async_mode="threading",
+    max_http_buffer_size=1024 * 1024,  # 1MB limit
 )
 
 # Import i18n support
@@ -64,13 +67,10 @@ def get_hunter() -> ProxyHunter:
     """Get or create ProxyHunter instance."""
     global proxy_hunter
     if proxy_hunter is None:
-        db_path = Path(__file__).parent.parent / 'db' / 'proxy_dashboard.db'
-        proxy_hunter = ProxyHunter(
-            threads=20,
-            timeout=10,
-            db_path=str(db_path)
-        )
+        db_path = Path(__file__).parent.parent / "db" / "proxy_dashboard.db"
+        proxy_hunter = ProxyHunter(threads=20, timeout=10, db_path=str(db_path))
     return proxy_hunter
+
 
 # get_translation function is now imported from i18n module
 
@@ -91,19 +91,18 @@ def index() -> str:
         # Prepare chart data
         chart_data = []
         for proxy in working_proxies[:20]:  # Limit to top 20 for chart
-            if proxy.get('response_time'):
-                chart_data.append({
-                    'proxy': proxy['proxy'],
-                    'response_time': proxy['response_time']
-                })
+            if proxy.get("response_time"):
+                chart_data.append(
+                    {"proxy": proxy["proxy"], "response_time": proxy["response_time"]}
+                )
 
         # Calculate statistics
-        total_proxies = stats.get('total_proxies', 0)
-        working_count = stats.get('working_proxies', 0)
-        failed_count = stats.get('failed_proxies', 0)
+        total_proxies = stats.get("total_proxies", 0)
+        working_count = stats.get("working_proxies", 0)
+        failed_count = stats.get("failed_proxies", 0)
 
-        response_stats = stats.get('response_time_stats', {})
-        avg_response_time = response_stats.get('avg_response_time', 0)
+        response_stats = stats.get("response_time_stats", {})
+        avg_response_time = response_stats.get("avg_response_time", 0)
         if avg_response_time is not None and avg_response_time > 0:
             avg_response_time = round(float(avg_response_time), 3)
         else:
@@ -113,7 +112,7 @@ def index() -> str:
         traffic_stats = global_traffic_monitor.get_stats()
 
         return render_template(
-            'index.html',
+            "index.html",
             lang=lang,
             trans=trans,
             results=working_proxies,
@@ -123,13 +122,13 @@ def index() -> str:
             fail=failed_count,
             average=avg_response_time,
             traffic_stats=traffic_stats,
-            last_updated=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            last_updated=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         )
 
     except Exception as e:
         logger.error(f"Error in index route: {e}")
         return render_template(
-            'index.html',
+            "index.html",
             lang=lang,
             trans=trans,
             results=[],
@@ -139,7 +138,7 @@ def index() -> str:
             fail=0,
             average=0,
             traffic_stats={},
-            last_updated='N/A'
+            last_updated="N/A",
         )
 
 
@@ -158,25 +157,25 @@ def traffic_dashboard():
         active_session_count = len(active_sessions)
 
         return render_template(
-            'traffic.html',
+            "traffic.html",
             lang=lang,
             trans=trans,
             traffic_stats=traffic_stats,
             recent_traffic=recent_traffic,
             active_sessions=active_session_count,
-            last_updated=datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            last_updated=datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
         )
 
     except Exception as e:
         logger.error(f"Error in traffic route: {e}")
         return render_template(
-            'traffic.html',
+            "traffic.html",
             lang=lang,
             trans=trans,
             traffic_stats={},
             recent_traffic=[],
             active_sessions=0,
-            last_updated='N/A'
+            last_updated="N/A",
         )
 
 
@@ -188,16 +187,10 @@ def api_refresh():
     # Prevent too frequent refreshes
     current_time = time.time()
     if current_time - last_refresh_time < 30:  # 30 seconds cooldown
-        return jsonify({
-            "status": "error",
-            "message": "Please wait before refreshing again"
-        }), 429
+        return jsonify({"status": "error", "message": "Please wait before refreshing again"}), 429
 
     if refresh_lock.locked():
-        return jsonify({
-            "status": "error",
-            "message": "Refresh already in progress"
-        }), 409
+        return jsonify({"status": "error", "message": "Refresh already in progress"}), 409
 
     def refresh_task():
         """Background refresh task."""
@@ -241,30 +234,29 @@ def api_data():
         hunter = get_hunter()
         stats = hunter.get_statistics()
 
-        response_stats = stats.get('response_time_stats', {})
-        avg_response_time = response_stats.get('avg_response_time', 0)
+        response_stats = stats.get("response_time_stats", {})
+        avg_response_time = response_stats.get("avg_response_time", 0)
         if avg_response_time is not None and avg_response_time > 0:
             avg_response_time = round(float(avg_response_time), 3)
         else:
             avg_response_time = 0
 
-        return jsonify({
-            "total": stats.get('total_proxies', 0),
-            "success": stats.get('working_proxies', 0),
-            "fail": stats.get('failed_proxies', 0),
-            "average": avg_response_time,
-            "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        })
+        return jsonify(
+            {
+                "total": stats.get("total_proxies", 0),
+                "success": stats.get("working_proxies", 0),
+                "fail": stats.get("failed_proxies", 0),
+                "average": avg_response_time,
+                "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            }
+        )
 
     except Exception as e:
         logger.error(f"Error in api_data: {e}")
-        return jsonify({
-            "total": 0,
-            "success": 0,
-            "fail": 0,
-            "average": 0,
-            "last_updated": "Error"
-        }), 500
+        return (
+            jsonify({"total": 0, "success": 0, "fail": 0, "average": 0, "last_updated": "Error"}),
+            500,
+        )
 
 
 @app.route("/api/traffic/stats")
@@ -272,47 +264,49 @@ def api_traffic_stats():
     """Get current traffic statistics."""
     try:
         traffic_stats = global_traffic_monitor.get_stats()
-        traffic_stats['active_sessions'] = len(active_sessions)
-        traffic_stats['last_updated'] = datetime.now().strftime(
-            '%Y-%m-%d %H:%M:%S')
+        traffic_stats["active_sessions"] = len(active_sessions)
+        traffic_stats["last_updated"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
 
         return jsonify(traffic_stats)
 
     except Exception as e:
         logger.error(f"Error in api_traffic_stats: {e}")
-        return jsonify({
-            "total_requests": 0,
-            "successful_requests": 0,
-            "failed_requests": 0,
-            "unique_proxies": 0,
-            "avg_response_time": 0,
-            "total_data": 0,
-            "session_duration": 0,
-            "active_sessions": 0,
-            "last_updated": "Error"
-        }), 500
+        return (
+            jsonify(
+                {
+                    "total_requests": 0,
+                    "successful_requests": 0,
+                    "failed_requests": 0,
+                    "unique_proxies": 0,
+                    "avg_response_time": 0,
+                    "total_data": 0,
+                    "session_duration": 0,
+                    "active_sessions": 0,
+                    "last_updated": "Error",
+                }
+            ),
+            500,
+        )
 
 
 @app.route("/api/traffic/recent")
 def api_traffic_recent():
     """Get recent traffic logs."""
     try:
-        limit = min(int(request.args.get('limit', 50)), 200)  # Max 200 entries
+        limit = min(int(request.args.get("limit", 50)), 200)  # Max 200 entries
         recent_traffic = global_traffic_monitor.get_recent_traffic(limit)
 
-        return jsonify({
-            "traffic": recent_traffic,
-            "count": len(recent_traffic),
-            "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        })
+        return jsonify(
+            {
+                "traffic": recent_traffic,
+                "count": len(recent_traffic),
+                "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            }
+        )
 
     except Exception as e:
         logger.error(f"Error in api_traffic_recent: {e}")
-        return jsonify({
-            "traffic": [],
-            "count": 0,
-            "last_updated": "Error"
-        }), 500
+        return jsonify({"traffic": [], "count": 0, "last_updated": "Error"}), 500
 
 
 @app.route("/api/traffic/clear", methods=["POST"])
@@ -334,10 +328,10 @@ def api_create_proxy_session():
 
         # Create new proxy session
         session = ProxySession(
-            proxy_count=data.get('proxy_count', 10),
-            rotation_strategy=data.get('rotation_strategy', 'round_robin'),
-            country_filter=data.get('country_filter'),
-            anonymous_only=data.get('anonymous_only', True)
+            proxy_count=data.get("proxy_count", 10),
+            rotation_strategy=data.get("rotation_strategy", "round_robin"),
+            country_filter=data.get("country_filter"),
+            anonymous_only=data.get("anonymous_only", True),
         )
 
         # Add to active sessions
@@ -346,39 +340,38 @@ def api_create_proxy_session():
         # Get session status
         status = session.get_proxy_status()
 
-        return jsonify({
-            "status": "success",
-            "message": "Proxy session created",
-            "session_id": id(session),
-            "proxy_status": status
-        })
+        return jsonify(
+            {
+                "status": "success",
+                "message": "Proxy session created",
+                "session_id": id(session),
+                "proxy_status": status,
+            }
+        )
 
     except Exception as e:
         logger.error(f"Error creating proxy session: {e}")
-        return jsonify({
-            "status": "error",
-            "message": str(e)
-        }), 500
+        return jsonify({"status": "error", "message": str(e)}), 500
 
 
 @app.route("/favicon.ico")
 def favicon():
     """Serve favicon."""
     try:
-        favicon_path = Path(__file__).parent / 'public' / 'favicon.ico'
+        favicon_path = Path(__file__).parent / "public" / "favicon.ico"
         if favicon_path.exists():
             return send_file(str(favicon_path))
     except Exception:
         pass
-    return '', 404
+    return "", 404
 
 
 @app.route("/api/export")
 def api_export():
     """Export proxy data in various formats."""
     try:
-        export_format = request.args.get('format', 'txt').lower()
-        limit = min(int(request.args.get('limit', 100)), 1000)  # Max 1000
+        export_format = request.args.get("format", "txt").lower()
+        limit = min(int(request.args.get("limit", 100)), 1000)  # Max 1000
 
         hunter = get_hunter()
         working_proxies = hunter.get_working_proxies(limit=limit)
@@ -387,29 +380,27 @@ def api_export():
             return jsonify({"error": "No working proxies available"}), 404
 
         # Create temporary file
-        temp_file = tempfile.NamedTemporaryFile(
-            delete=False, suffix=f'.{export_format}')
+        temp_file = tempfile.NamedTemporaryFile(delete=False, suffix=f".{export_format}")
 
         try:
-            if export_format == 'txt':
-                with open(temp_file.name, 'w') as f:
+            if export_format == "txt":
+                with open(temp_file.name, "w") as f:
                     for proxy in working_proxies:
                         f.write(f"{proxy['proxy']}\n")
-                mimetype = 'text/plain'
+                mimetype = "text/plain"
 
-            elif export_format == 'json':
-                with open(temp_file.name, 'w') as f:
+            elif export_format == "json":
+                with open(temp_file.name, "w") as f:
                     json.dump(working_proxies, f, indent=2)
-                mimetype = 'application/json'
+                mimetype = "application/json"
 
-            elif export_format == 'csv':
-                with open(temp_file.name, 'w', newline='') as f:
+            elif export_format == "csv":
+                with open(temp_file.name, "w", newline="") as f:
                     if working_proxies:
-                        writer = csv.DictWriter(
-                            f, fieldnames=working_proxies[0].keys())
+                        writer = csv.DictWriter(f, fieldnames=working_proxies[0].keys())
                         writer.writeheader()
                         writer.writerows(working_proxies)
-                mimetype = 'text/csv'
+                mimetype = "text/csv"
 
             else:
                 return jsonify({"error": "Unsupported format"}), 400
@@ -418,7 +409,7 @@ def api_export():
                 temp_file.name,
                 as_attachment=True,
                 download_name=f'proxies_{datetime.now().strftime("%Y%m%d_%H%M%S")}.{export_format}',
-                mimetype=mimetype
+                mimetype=mimetype,
             )
 
         finally:
@@ -449,32 +440,33 @@ def internal_error(error):
     logger.error(f"Internal error: {error}")
     return jsonify({"error": "Internal server error"}), 500
 
+
 # WebSocket event handlers
 
 
-@socketio.on('connect')
+@socketio.on("connect")
 def handle_connect():
     """Handle client connection."""
     connected_clients.add(request.sid)
     logger.info(f"Client {request.sid} connected")
 
 
-@socketio.on('disconnect')
+@socketio.on("disconnect")
 def handle_disconnect():
     """Handle client disconnection."""
     connected_clients.discard(request.sid)
     logger.info(f"Client {request.sid} disconnected")
 
 
-@socketio.on('request_stats')
+@socketio.on("request_stats")
 def handle_stats_request():
     """Handle request for statistics update."""
     try:
         hunter = get_hunter()
         stats = hunter.get_statistics()
 
-        response_stats = stats.get('response_time_stats', {})
-        avg_response_time = response_stats.get('avg_response_time', 0)
+        response_stats = stats.get("response_time_stats", {})
+        avg_response_time = response_stats.get("avg_response_time", 0)
         if avg_response_time is not None and avg_response_time > 0:
             avg_response_time = round(float(avg_response_time), 3)
         else:
@@ -483,32 +475,38 @@ def handle_stats_request():
         # Get traffic stats
         traffic_stats = global_traffic_monitor.get_stats()
 
-        emit('stats_update', {
-            "total": stats.get('total_proxies', 0),
-            "success": stats.get('working_proxies', 0),
-            "fail": stats.get('failed_proxies', 0),
-            "average": avg_response_time,
-            "traffic": traffic_stats,
-            "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        })
+        emit(
+            "stats_update",
+            {
+                "total": stats.get("total_proxies", 0),
+                "success": stats.get("working_proxies", 0),
+                "fail": stats.get("failed_proxies", 0),
+                "average": avg_response_time,
+                "traffic": traffic_stats,
+                "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            },
+        )
 
     except Exception as e:
         logger.error(f"Error handling stats request: {e}")
 
 
-@socketio.on('request_traffic')
+@socketio.on("request_traffic")
 def handle_traffic_request():
     """Handle request for traffic data update."""
     try:
         traffic_stats = global_traffic_monitor.get_stats()
         recent_traffic = global_traffic_monitor.get_recent_traffic(50)
 
-        emit('traffic_update', {
-            "stats": traffic_stats,
-            "recent": recent_traffic,
-            "active_sessions": len(active_sessions),
-            "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        })
+        emit(
+            "traffic_update",
+            {
+                "stats": traffic_stats,
+                "recent": recent_traffic,
+                "active_sessions": len(active_sessions),
+                "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            },
+        )
 
     except Exception as e:
         logger.error(f"Error handling traffic request: {e}")
@@ -527,8 +525,8 @@ def broadcast_stats_update():
         hunter = get_hunter()
         stats = hunter.get_statistics()
 
-        response_stats = stats.get('response_time_stats', {})
-        avg_response_time = response_stats.get('avg_response_time', 0)
+        response_stats = stats.get("response_time_stats", {})
+        avg_response_time = response_stats.get("avg_response_time", 0)
         if avg_response_time is not None and avg_response_time > 0:
             avg_response_time = round(float(avg_response_time), 3)
         else:
@@ -537,14 +535,17 @@ def broadcast_stats_update():
         # Get traffic stats
         traffic_stats = global_traffic_monitor.get_stats()
 
-        socketio.emit('stats_update', {
-            "total": stats.get('total_proxies', 0),
-            "success": stats.get('working_proxies', 0),
-            "fail": stats.get('failed_proxies', 0),
-            "average": avg_response_time,
-            "traffic": traffic_stats,
-            "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        })
+        socketio.emit(
+            "stats_update",
+            {
+                "total": stats.get("total_proxies", 0),
+                "success": stats.get("working_proxies", 0),
+                "fail": stats.get("failed_proxies", 0),
+                "average": avg_response_time,
+                "traffic": traffic_stats,
+                "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            },
+        )
 
         last_broadcast_time = current_time
 
@@ -557,31 +558,36 @@ def broadcast_traffic_update():
     try:
         traffic_stats = global_traffic_monitor.get_stats()
         recent_traffic = global_traffic_monitor.get_recent_traffic(
-            10)  # Only recent 10 for real-time
+            10
+        )  # Only recent 10 for real-time
 
-        socketio.emit('traffic_update', {
-            "stats": traffic_stats,
-            "recent": recent_traffic,
-            "active_sessions": len(active_sessions),
-            "last_updated": datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        })
+        socketio.emit(
+            "traffic_update",
+            {
+                "stats": traffic_stats,
+                "recent": recent_traffic,
+                "active_sessions": len(active_sessions),
+                "last_updated": datetime.now().strftime("%Y-%m-%d %H:%M:%S"),
+            },
+        )
 
     except Exception as e:
         logger.error(f"Error broadcasting traffic: {e}")
 
 
-@app.template_filter('filesizeformat')
+@app.template_filter("filesizeformat")
 def filesizeformat(value):
     """Format file size in human readable format."""
     try:
         value = float(value)
-        for unit in ['B', 'KB', 'MB', 'GB']:
+        for unit in ["B", "KB", "MB", "GB"]:
             if value < 1024.0:
                 return f"{value:.1f} {unit}"
             value /= 1024.0
         return f"{value:.1f} TB"
     except (ValueError, TypeError):
         return "0 B"
+
 
 # Global traffic monitoring middleware
 
@@ -617,10 +623,9 @@ def cleanup_inactive_sessions():
 
 
 # Start cleanup thread
-cleanup_thread = threading.Thread(
-    target=cleanup_inactive_sessions, daemon=True)
+cleanup_thread = threading.Thread(target=cleanup_inactive_sessions, daemon=True)
 cleanup_thread.start()
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     # Development server
-    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
+    socketio.run(app, host="0.0.0.0", port=5000, debug=True)
