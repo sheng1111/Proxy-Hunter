@@ -6,6 +6,7 @@
 [![Python](https://img.shields.io/badge/python-3.8+-blue.svg)](https://www.python.org/downloads/)
 [![License](https://img.shields.io/badge/license-MIT-green.svg)](LICENSE)
 [![GitHub Stars](https://img.shields.io/github/stars/sheng1111/Proxy-Hunter.svg)](https://github.com/sheng1111/Proxy-Hunter/stargazers)
+[![Ask DeepWiki](https://deepwiki.com/badge.svg)](https://deepwiki.com/sheng1111/Proxy-Hunter)
 
 **Professional proxy management with traffic monitoring for red team operations and web scraping**
 
@@ -64,7 +65,7 @@ source venv/bin/activate  # Linux/Mac
 # or venv\Scripts\activate  # Windows
 
 # Install from PyPI
-pip install proxy-hunter
+pip install proxy-meshx
 
 # Or install from source
 git clone https://github.com/sheng1111/Proxy-Hunter.git
@@ -72,7 +73,7 @@ cd Proxy-Hunter
 pip install -e .
 ```
 
-**Note:** The package name is `proxy-hunter`, but you still import it as `proxyhunter`:
+**Note:** The package name is `proxy-meshx`, but you still import it as `proxyhunter`:
 
 ```python
 from proxyhunter import ProxyHunter, get_proxy
@@ -278,7 +279,7 @@ source venv/bin/activate  # Linux/Mac
 # 或 venv\Scripts\activate  # Windows
 
 # 從 PyPI 安裝
-pip install proxy-hunter
+pip install proxy-meshx
 
 # 或從原始碼安裝
 git clone https://github.com/sheng1111/Proxy-Hunter.git
@@ -286,7 +287,7 @@ cd Proxy-Hunter
 pip install -e .
 ```
 
-**注意：** 套件名稱為 `proxy-hunter`，但導入時仍使用 `proxyhunter`：
+**注意：** 套件名稱為 `proxy-meshx`，但導入時仍使用 `proxyhunter`：
 
 ```python
 from proxyhunter import ProxyHunter, get_proxy
@@ -492,7 +493,7 @@ source venv/bin/activate  # Linux/Mac
 # または venv\Scripts\activate  # Windows
 
 # PyPIからインストール
-pip install proxy-hunter
+pip install proxy-meshx
 
 # またはソースからインストール
 git clone https://github.com/sheng1111/Proxy-Hunter.git
@@ -500,7 +501,7 @@ cd Proxy-Hunter
 pip install -e .
 ```
 
-**注意：** パッケージ名は `proxy-hunter` ですが、インポート時は `proxyhunter` を使用します：
+**注意：** パッケージ名は `proxy-meshx` ですが、インポート時は `proxyhunter` を使用します：
 
 ```python
 from proxyhunter import ProxyHunter, get_proxy
@@ -657,14 +658,12 @@ python -m proxyhunter.web_app
 
 ---
 
-<div align="center">
-
 ### 📋 System Requirements
 
-- **Python**: 3.8+
-- **Memory**: 256MB minimum, 1GB+ recommended
-- **Storage**: 50MB minimum
-- **Network**: Stable internet connection
+**Python**: 3.8+
+**Memory**: 256MB minimum, 1GB+ recommended
+**Storage**: 50MB minimum
+**Network**: Stable internet connection
 
 ### 📁 Project Structure
 
@@ -704,6 +703,8 @@ python -m venv venv
 source venv/bin/activate  # Linux/Mac or venv\Scripts\activate on Windows
 pip install -r requirements.txt
 ```
+
+<div align="center">
 
 ### 📄 License
 
