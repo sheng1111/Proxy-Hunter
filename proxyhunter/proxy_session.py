@@ -120,16 +120,19 @@ class ProxySession(requests.Session):
     def __init__(self, proxy_count: int = 10, rotation_strategy: str = 'round_robin',
                  max_retries: int = 3, timeout: int = 10,
                  country_filter: Optional[str] = None,
-                 anonymous_only: bool = True):
+                 anonymous_only: bool = True, min_quality: float = 0.0,
+                 protocol_filter: Optional[str] = None):
         """Initialize ProxySession.
 
         Args:
             proxy_count: Number of proxies to maintain in rotation pool
-            rotation_strategy: 'round_robin', 'random', or 'performance'
+            rotation_strategy: 'round_robin', 'random', 'performance', or 'quality_based'
             max_retries: Maximum retries per proxy
             timeout: Request timeout in seconds
             country_filter: Filter proxies by country code (e.g., 'US')
             anonymous_only: Only use anonymous proxies
+            min_quality: Minimum quality score for proxies (0-100)
+            protocol_filter: Filter by protocol ('http', 'https', 'socks4', 'socks5')
         """
         super().__init__()
 
@@ -139,6 +142,8 @@ class ProxySession(requests.Session):
         self.timeout = timeout
         self.country_filter = country_filter
         self.anonymous_only = anonymous_only
+        self.min_quality = min_quality
+        self.protocol_filter = protocol_filter
 
         # Initialize proxy hunter
         self.hunter = ProxyHunter(
@@ -184,7 +189,18 @@ class ProxySession(requests.Session):
     def _refresh_proxy_pool(self):
         """Refresh the proxy pool with working proxies."""
         try:
-            if self.country_filter:
+            # Apply filters based on preferences
+            if self.min_quality > 0:
+                proxies = self.hunter.get_proxies_by_quality(
+                    min_quality_score=self.min_quality,
+                    limit=self.proxy_count * 2
+                )
+            elif self.protocol_filter:
+                proxies = self.hunter.get_proxies_by_protocol(
+                    self.protocol_filter,
+                    limit=self.proxy_count * 2
+                )
+            elif self.country_filter:
                 proxies = self.hunter.get_proxies_by_country(
                     self.country_filter,
                     limit=self.proxy_count * 2
@@ -200,8 +216,18 @@ class ProxySession(requests.Session):
                 results = self.hunter.validate_proxies(fresh_proxies[:50])
                 self.hunter.save_to_database(results)
 
-                # Get working proxies again
-                if self.country_filter:
+                # Get working proxies again with same filters
+                if self.min_quality > 0:
+                    proxies = self.hunter.get_proxies_by_quality(
+                        min_quality_score=self.min_quality,
+                        limit=self.proxy_count * 2
+                    )
+                elif self.protocol_filter:
+                    proxies = self.hunter.get_proxies_by_protocol(
+                        self.protocol_filter,
+                        limit=self.proxy_count * 2
+                    )
+                elif self.country_filter:
                     proxies = self.hunter.get_proxies_by_country(
                         self.country_filter,
                         limit=self.proxy_count * 2
@@ -267,6 +293,30 @@ class ProxySession(requests.Session):
 
                 available_proxies.sort(key=performance_score, reverse=True)
                 return available_proxies[0]
+            elif self.rotation_strategy == 'quality_based':
+                # Sort by quality score from database
+                proxy_qualities = {}
+                for proxy in available_proxies:
+                    proxy_addr = proxy.replace(
+                        'http://', '').replace('https://', '')
+                    try:
+                        # Get quality score from database
+                        working_proxies = self.hunter.get_working_proxies(
+                            limit=1000)
+                        for p in working_proxies:
+                            if p['proxy'] == proxy_addr:
+                                proxy_qualities[proxy] = p.get(
+                                    'quality_score', 0)
+                                break
+                        if proxy not in proxy_qualities:
+                            proxy_qualities[proxy] = 0
+                    except:
+                        proxy_qualities[proxy] = 0
+
+                # Sort by quality score
+                sorted_proxies = sorted(available_proxies,
+                                        key=lambda x: proxy_qualities.get(x, 0), reverse=True)
+                return sorted_proxies[0]
             else:  # round_robin
                 # Find next available proxy in round-robin order
                 for i in range(len(self.proxy_pool)):

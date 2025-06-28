@@ -21,7 +21,7 @@ requirements = [
 
 setup(
     name="proxy-meshx",
-    version="2.0.5",
+    version="2.3.0",
     author="sheng1111",
     author_email="ysl58200@gmail.com",
     description="Professional proxy fetching and validation tool for red team operations and web scraping",
